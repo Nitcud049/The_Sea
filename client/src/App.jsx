@@ -43,7 +43,7 @@ import TravelPage from './pages/TravelPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import UserReviewsPage from './pages/UserReviewsPage';
 import WishlistPage from './pages/WishlistPage';
-
+import ContactPage from './pages/contact/ContactPage';
 // ==========================================
 // COMPONENT: CUỘN LÊN ĐẦU TRANG KHI ĐỔI ROUTE
 // ==========================================
@@ -278,7 +278,7 @@ function AppContent() {
           <Route path="/:gender/:categoryId" element={<CategoryPage products={products} setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
           
           <Route path="/contact" element={<Contact currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
-            
+          <Route path="/contact-us" element={<ContactPage currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />  
           <Route path="/travel" element={<TravelPage products={products} setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
 
           <Route path="/men/accessories" element={<MenAccessoriesPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
@@ -357,6 +357,7 @@ function AppContent() {
 />
 {/*---*/}
         </Routes>
+        
       </main>
 
       {!isAdminMode && <Footer />}

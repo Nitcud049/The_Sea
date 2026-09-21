@@ -1,7 +1,9 @@
+
 import React, { useState } from 'react';
 // 1. IMPORT Link từ react-router-dom
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+
 
 // 2. Bỏ props changeCategory vì chúng ta sẽ dùng Link
 function Sidebar({ sidebarOpen, setSidebarOpen }) {

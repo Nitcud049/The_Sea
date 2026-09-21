@@ -34,7 +34,7 @@ const Footer = () => {
                         </h4>
                         <ul style={{ listStyle: "none", padding: 0, margin: 0, fontSize: "13px", lineHeight: "2.2", color: "#333" }}>
                             <li>
-                                You can <Link to="/contact" style={{ color: "#111", textDecoration: "underline" }}>call</Link> or <Link to="/contact" style={{ color: "#111", textDecoration: "underline" }}>email us</Link>
+                                You can <Link to="/contact" style={{ color: "#111", textDecoration: "underline" }}>call</Link> or <Link to="/contact-us" style={{ color: "#111", textDecoration: "underline" }}>email us</Link>
                             </li>
                             <li><Link to="/contact" style={{ color: "inherit", textDecoration: "none" }}>FAQ's</Link></li>
                             <li><Link to="/homepage" style={{ color: "inherit", textDecoration: "none" }}>Product Care</Link></li>

@@ -17,7 +17,7 @@ function Contact() {
         <div style={{ flex: '1 1 300px', padding: '30px', border: '1px solid #eee', borderRadius: '8px' }}>
           <h3 style={{ fontSize: '18px', marginBottom: '15px' }}>Gọi điện</h3>
           <p style={{ color: '#666', marginBottom: '15px' }}>Thứ Hai đến Thứ Bảy<br/>Từ 9:00 sáng đến 8:00 tối</p>
-          <a href="tel:+84123456789" style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: '#1a1a1a', color: '#fff', textDecoration: 'none', borderRadius: '4px' }}>+84 123 456 789</a>
+          <a href="tel:+84123456789" style={{ display: 'inline-block', padding: '10px 20px', backgroundColor: '#1a1a1a', color: '#fff', textDecoration: 'none', borderRadius: '4px' }}>+84 877 589 808</a>
         </div>
 
         <div style={{ flex: '1 1 300px', padding: '30px', border: '1px solid #eee', borderRadius: '8px' }}>

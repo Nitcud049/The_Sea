@@ -1,10 +1,59 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+@font-face {
+  font-family: "The Sea";
+  src: url("./fonts/TheSea-Light.woff2") format("woff2"),
+       url("./fonts/TheSea-Light.woff") format("woff");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "The Sea";
+  src: url("./fonts/TheSea-Regular.woff2") format("woff2"),
+       url("./fonts/TheSea-Regular.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "The Sea";
+  src: url("./fonts/TheSea-Medium.woff2") format("woff2"),
+       url("./fonts/TheSea-Medium.woff") format("woff");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
 
 /* Reset & Base */
 body, html {
   margin: 0;
   padding: 0;
-  font-family: 'Inter', sans-serif; /* Phông chữ không chân chuẩn UI hiện đại */
+  font-family: "The Sea", sans-serif;
+  font-weight: 400;
+  background-color: #ffffff;
+  color: #231F20;
+  letter-spacing: 0.03em;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Đảm bảo các thẻ đặc biệt kế thừa đúng font mới */
+h1, h2, h3, h4, h5, h6, p, a, span, button, input, textarea {
+  font-family: inherit;
+  color: inherit;
+}
+
+h1, h2, h3 {
+  letter-spacing: 0.04em;
+}
+
+/* Reset & Base */
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: 'The Sea', sans-serif; /* Đổi thành font độc quyền */
   background-color: #ffffff;
   color: #1a1a1a;
   overflow-x: hidden;
@@ -223,4 +272,4 @@ body, html {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
-}
+}

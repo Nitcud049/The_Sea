@@ -1,3 +1,26 @@
+/* 1. Nhập phông chữ Jost với độ dày 400 và hỗ trợ tiếng Việt */
+@import url('https://fonts.googleapis.com/css2?family=Jost:wght@400&subset=vietnamese&display=swap');
+
+/* 2. Áp dụng cho toàn bộ thẻ body và các thành phần trên web */
+body {
+  font-family: 'Jost', sans-serif;
+  font-weight: 400;
+  color: #231F20; /* Màu đen hơi ấm */
+  letter-spacing: 0.03em; /* Khoảng cách chữ trung bình giữa 0.02em và 0.04em */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 3. Đảm bảo các thẻ đặc biệt (tiêu đề, nút, input) cũng kế thừa đúng font */
+h1, h2, h3, h4, h5, h6, p, a, span, button, input, textarea {
+  font-family: inherit;
+  color: inherit;
+}
+
+/* Nếu bạn muốn nhấn mạnh riêng các tiêu đề, có thể chỉnh letter-spacing rộng hơn một chút */
+h1, h2, h3 {
+  letter-spacing: 0.04em;
+}
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
