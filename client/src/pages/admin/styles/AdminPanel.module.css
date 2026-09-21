@@ -1,0 +1,739 @@
+/* AdminPanel.module.css */
+
+/* Bố cục tổng thể */
+.adminLayout {
+  display: flex;
+  height: 100vh;
+  background-color: #f4f5f7;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  overflow: hidden;
+}
+
+/* Thanh bên (Sidebar) */
+.sidebar {
+  width: 240px;
+  min-width: 240px;
+  background-color: #ffffff;
+  border-right: 1px solid #e5e5e5;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+/* Tiêu đề Sidebar */
+.sidebarHeader {
+  padding: 25px 20px;
+  border-bottom: 1px solid #e5e5e5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  background-color: #ffffff;
+  z-index: 2;
+}
+
+.logoTitle {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: 2px;
+  font-weight: bold;
+  color: #1a1a1a;
+}
+
+.logoSubtitle {
+  font-size: 11px;
+  color: #888888;
+  font-weight: normal;
+  margin-left: 5px;
+}
+
+/* Tiêu đề nhóm Menu (Kinh doanh, Sản phẩm...) */
+.sidebarGroupTitle {
+  padding: 0 20px;
+  font-size: 11px;
+  color: #999999;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+/* Nút Menu mặc định */
+.sidebarBtn {
+  width: 100%;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  text-align: left;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+  background-color: transparent;
+  color: #666666;
+  border-left: 4px solid transparent;
+}
+
+.sidebarBtnIcon {
+  font-size: 18px;
+  min-width: 24px;
+}
+
+/* Hiệu ứng rê chuột (Hover) */
+.sidebarBtn:hover {
+  background-color: #f9f9f9;
+  color: #1a1a1a;
+}
+
+/* Trạng thái Menu đang được chọn (Active) */
+.sidebarBtnActive {
+  background-color: #f5f5f5;
+  color: #1a1a1a;
+  font-weight: 600;
+  border-left-color: #1a1a1a;
+}
+
+/* Thông báo số lượng (Badge) */
+.badge {
+  background-color: #ff4757;
+  color: #ffffff;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: bold;
+  position: absolute;
+  right: 15px;
+}
+
+/* Nút Đăng xuất */
+.logoutWrapper {
+  padding: 15px;
+  border-top: 1px solid #e5e5e5;
+  position: sticky;
+  bottom: 0;
+  background-color: #ffffff;
+}
+
+.logoutBtn {
+  width: 100%;
+  padding: 10px;
+  background-color: #ff4757;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 13px;
+  transition: background-color 0.2s ease;
+}
+
+.logoutBtn:hover {
+  background-color: #e03847;
+}
+
+/* Khu vực nội dung chính (Main Content) */
+.mainContent {
+  flex: 1;
+  padding: 30px;
+  height: 100vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+/* --- Tùy chỉnh Thanh Cuộn (Scrollbar) chuẩn chuyên nghiệp --- */
+.sidebar::-webkit-scrollbar,
+.mainContent::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track,
+.mainContent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb,
+.mainContent::-webkit-scrollbar-thumb {
+  background-color: #dddddd;
+  border-radius: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover,
+.mainContent::-webkit-scrollbar-thumb:hover {
+  background-color: #cccccc;
+}
+
+/* Xử lý thu phóng Sidebar */
+.sidebarClosed {
+  width: 0 !important;
+  min-width: 0 !important;
+  border: none !important;
+  opacity: 0;
+}
+
+/* Header của khu vực nội dung */
+.header {
+  height: 80px;
+  background-color: #fff;
+  border-bottom: 1px solid #e5e5e5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  flex-shrink: 0;
+}
+
+/* Khung nội dung chung (Card) */
+.card {
+  background-color: #fff;
+  padding: 30px;
+  border: 1px solid #e5e5e5;
+  border-radius: 0;
+  margin-bottom: 20px;
+}
+
+/* Bảng dữ liệu */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  table-layout: fixed;
+}
+
+.th {
+  padding: 15px;
+  border-bottom: 2px solid #000;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #000;
+  font-weight: bold;
+}
+
+.td {
+  padding: 15px;
+  border-bottom: 1px solid #eaeaea;
+  font-size: 14px;
+  vertical-align: middle;
+  color: #1a1a1a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Các thành phần UI khác */
+.imgBound {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border: 1px solid #eaeaea;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ccc;
+  outline: none;
+  font-size: 13px;
+  background-color: #fff;
+}
+
+.label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btnPrimary {
+  padding: 12px 24px;
+  background-color: #000;
+  color: #fff;
+  border: 1px solid #000;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s;
+}
+
+.btnPrimary:hover {
+  background-color: #333;
+}
+
+.btnDanger {
+  background-color: #fff;
+  color: #ff0000;
+  border: 1px solid #ff0000;
+}
+
+.btnDanger:hover {
+  background-color: #fff5f5;
+}
+
+.disabledBtn {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Animation */
+.animateFade {
+  animation: fadeIn 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   BỔ SUNG DÀNH RIÊNG CHO PRODUCT LIST TAB (STYLE LOUIS VUITTON MINIMALISM)
+   ========================================================================== */
+
+.productListWrapper {
+  padding: 40px;
+  background-color: #ffffff;
+  color: #000000;
+  min-height: 100vh;
+}
+
+.productListHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 20px;
+  margin-bottom: 30px;
+}
+
+.searchContainer {
+  position: relative;
+  width: 350px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 12px 0 12px 30px;
+  border: none;
+  border-bottom: 1px solid #000000;
+  outline: none;
+  font-size: 13px;
+  background-color: transparent;
+  letter-spacing: 0.5px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: #000000;
+}
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  background-color: #000000;
+  color: #ffffff;
+  border: none;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.addBtn:hover {
+  background-color: #333333;
+}
+
+.productListTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.productListTh {
+  padding: 20px 10px;
+  border-bottom: 1px solid #000000;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: #000000;
+  font-weight: 600;
+}
+
+.sortableTh {
+  cursor: pointer;
+  user-select: none;
+}
+
+.productListTd {
+  padding: 20px 10px;
+  border-bottom: 1px solid #f5f5f5;
+  vertical-align: middle;
+  font-size: 14px;
+}
+
+.productNameTd {
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.categoryTd {
+  text-transform: uppercase;
+  font-size: 12px;
+  color: #666666;
+}
+
+.priceTd {
+  letter-spacing: 1px;
+}
+
+.productImage {
+  width: 70px;
+  height: 90px;
+  object-fit: cover;
+}
+
+.genderTag {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 1px solid #000000;
+  padding: 4px 8px;
+}
+
+.actionBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  color: #000000;
+  margin: 0 4px;
+  transition: opacity 0.2s ease;
+}
+
+.actionBtn:hover {
+  opacity: 0.6;
+}
+
+.emptyTd {
+  text-align: center;
+  padding: 60px 0;
+  color: #999999;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.paginationSection {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.paginationLabel {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.pageControl {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pageBtn {
+  padding: 8px;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s ease;
+}
+
+.pageBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.pageBtn:not(:disabled):hover {
+  border-color: #000000;
+}
+
+.pageCounter {
+  margin: 0 15px;
+  font-size: 13px;
+  letter-spacing: 2px;
+}
+
+.pageSelect {
+  border: 1px solid #e0e0e0;
+  padding: 8px;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+  background-color: #ffffff;
+}
+
+.jumpInput {
+  width: 50px;
+  padding: 8px;
+  border: 1px solid #e0e0e0;
+  text-align: center;
+  font-size: 12px;
+  outline: none;
+}
+
+/* ==========================================================================
+   GIAO DIỆN CỬA SỔ NỔI (MODAL) - LOUIS VUITTON MINIMALISM
+   ========================================================================== */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4); /* Nền tối mờ */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  backdrop-filter: blur(2px);
+}
+
+.modalContent {
+  background-color: #ffffff;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid #000000; /* Viền đen mỏng đặc trưng */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  animation: modalFadeIn 0.3s ease-out forwards;
+  display: flex;
+  flex-direction: column;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  border-bottom: 1px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+  background-color: #ffffff;
+  z-index: 10;
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 600;
+  color: #000000;
+}
+
+.modalCloseBtn {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #000000;
+  transition: transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalCloseBtn:hover {
+  transform: rotate(90deg);
+}
+
+.modalBody {
+  padding: 30px;
+  /* Khu vực này sẽ chứa 100% giao diện của file ProductFormTab cũ */
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Ẩn thanh cuộn của modal cho đẹp nhưng vẫn cuộn được */
+.modalContent::-webkit-scrollbar {
+  width: 4px;
+}
+.modalContent::-webkit-scrollbar-thumb {
+  background-color: #000000;
+}
+
+/* ==========================================================================
+   BỔ SUNG CHO ORDER LIST TAB (QUẢN LÝ ĐƠN HÀNG)
+   ========================================================================== */
+
+.orderWrapper {
+  background-color: #ffffff;
+  padding: 40px;
+  min-height: 100vh;
+}
+
+.orderHeaderTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 20px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #000000;
+}
+
+.orderHeaderTitle h2 {
+  margin: 0;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 600;
+  color: #000000;
+}
+
+.orderTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.orderTh {
+  padding: 20px 10px;
+  border-bottom: 1px solid #000000;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: #000000;
+  font-weight: 600;
+}
+
+.orderTd {
+  padding: 20px 10px;
+  border-bottom: 1px solid #f5f5f5;
+  vertical-align: middle;
+  font-size: 14px;
+}
+
+.orderId {
+  font-family: monospace;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.customerName {
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #000000;
+}
+
+.customerPhone {
+  font-size: 12px;
+  color: #666666;
+}
+
+.orderTotal {
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+/* Badges trạng thái tối giản */
+.statusBadge {
+  display: inline-block;
+  padding: 6px 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 1px solid;
+}
+
+.statusPending { background-color: #fff9e6; color: #b38600; border-color: #ffe699; }
+.statusConfirmed { background-color: #e6f2ff; color: #0066cc; border-color: #b3d9ff; }
+.statusShipping { background-color: #f0e6ff; color: #5900b3; border-color: #d9b3ff; }
+.statusCompleted { background-color: #e6ffe6; color: #008000; border-color: #b3ffb3; }
+.statusCancelled { background-color: #ffe6e6; color: #cc0000; border-color: #ffb3b3; }
+
+.orderSelect {
+  padding: 10px 15px;
+  border: 1px solid #e0e0e0;
+  background-color: #ffffff;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  width: 100%;
+  max-width: 200px;
+}
+
+.orderSelect:focus, .orderSelect:hover {
+  border-color: #000000;
+}
+
+.updateActionWrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end;
+}
+/* Styling cho cột Đã Thanh Toán */
+.paidAmount {
+  font-weight: 600;
+  color: #000000;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.paymentBadge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 2px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.badgeFull {
+  background-color: #e6f4ea;
+  color: #137333;
+}
+
+.badgeDeposit {
+  background-color: #feefc3;
+  color: #b06000;
+}

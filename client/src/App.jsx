@@ -1,0 +1,337 @@
+import React, { useState, useEffect } from 'react';
+// CHỈ CÓ 1 DÒNG IMPORT ROUTER DUY NHẤT Ở ĐÂY:
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
+import './App.css'; 
+
+// ==========================================
+// 1. IMPORT CÁC COMPONENT DÙNG CHUNG & MODAL
+// ==========================================
+import Header from './components/Header';
+import Sidebar from './components/Sidebar';
+import Footer from './components/Footer';
+import ProductCard from './components/ProductCard';
+import Home from './pages/Home';
+import AdminPanel from './pages/admin/AdminPanel';
+import Contact from './pages/Contact'; // Đã import trang Contact
+
+import AuthModal from './components/modals/AuthModal';
+import CartModal from './components/modals/CartModal';
+import ProductModal from './components/modals/ProductModal';
+import SearchModal from './components/modals/SearchModal';
+import ProfileModal from './components/modals/ProfileModal';
+import CategoryPage from './pages/CategoryPage';
+
+// ==========================================
+// 2. IMPORT CÁC TRANG ĐỘC LẬP ĐÃ TẠO
+// ==========================================
+import MenAccessoriesPage from './pages/men/accessories/index';
+import MenClothingPage from './pages/men/clothing/index';
+import MenJacketsPage from './pages/men/jackets/index';
+
+import MenNewArrivalsPage from './pages/men/new-arrivals/index';
+import MenShoesPage from './pages/men/shoes/index';
+import MenBagsPage from './pages/men/bags/index';
+
+import WomenBagsPage from './pages/women/bags/index';
+import WomenClothingPage from './pages/women/clothing/index';
+import WomenJewelryPage from './pages/women/jewelry/index';
+
+import WomenNewArrivalsPage from './pages/women/new-arrivals/index';
+import WomenShoesPage from './pages/women/shoes/index';
+import TravelPage from './pages/TravelPage';
+import ProductDetailPage from './pages/ProductDetailPage';
+import UserReviewsPage from './pages/UserReviewsPage';
+import WishlistPage from './pages/WishlistPage';
+
+// ==========================================
+// COMPONENT: CUỘN LÊN ĐẦU TRANG KHI ĐỔI ROUTE
+// ==========================================
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
+
+// ==========================================
+// COMPONENT: TRANG XÁC NHẬN ĐẶT HÀNG THÀNH CÔNG
+// ==========================================
+function CheckoutSuccessPage() {
+  const navigate = useNavigate();
+  return (
+    <div style={{ padding: "150px 40px", textAlign: "center", minHeight: "70vh", backgroundColor: "#fff" }}>
+        <h2 style={{ fontSize: "28px", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "20px", fontFamily: "'Playfair Display', serif" }}>
+            Cảm ơn bạn đã đặt hàng!
+        </h2>
+        <p style={{ color: "#666", marginBottom: "40px", fontSize: "15px" }}>
+            Đơn hàng của bạn tại THE SEA đã được ghi nhận và đang trong quá trình xử lý.<br/>
+            Chúng tôi sẽ liên hệ với bạn trong thời gian sớm nhất để xác nhận giao hàng.
+        </p>
+        <button className="lv-btn-dark" onClick={() => navigate('/homepage')}>
+            Tiếp tục khám phá
+        </button>
+    </div>
+  );
+}
+
+// ==========================================
+// COMPONENT NỘI DUNG CHÍNH CỦA ỨNG DỤNG
+// ==========================================
+function AppContent() {
+  const navigate = useNavigate(); 
+  
+  // --- STATE ---
+  const [products, setProducts] = useState([]);
+  const [cart, setCart] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  const [currentUser, setCurrentUser] = useState(null); 
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showCartModal, setShowCartModal] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false); 
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [customerInfo, setCustomerInfo] = useState({ name: "", phone: "", address: "", email: "" });
+  const [selectedProduct, setSelectedProduct] = useState(null); 
+  
+  const [newProduct, setNewProduct] = useState({ 
+    name: "", price: "", inputCurrency: "VND", image: "", 
+    defaultColorName: "", defaultColorCode: "#ffffff", 
+    gender: "women", category: "bags", isNewProduct: false, isSale: false, description: "", colors: [] 
+  });
+  const [editingId, setEditingId] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [activeTab, setActiveTab] = useState('list');
+  const [users, setUsers] = useState([]);
+  const [storeCurrency, setStoreCurrency] = useState('VND');
+
+  // STATE QUẢN LÝ CẤU HÌNH TRANG CHỦ
+  const [homepageConfig, setHomepageConfig] = useState(null);
+
+  const exchangeRates = { USD: 1, VND: 25400, EUR: 0.92, JPY: 151 };
+
+  // 1. USE-EFFECT ĐIỀU CHỈNH QUYỀN ADMIN (Giữ nguyên các chức năng Admin)
+  useEffect(() => {
+    if (currentUser && currentUser.username === 'admin') {
+      setIsAdminMode(true);
+      setShowLoginModal(false); 
+      navigate('/admin');       
+    } else {
+      setIsAdminMode(false);
+    }
+  }, [currentUser, navigate]);
+
+  // 2. USE-EFFECT CÔNG CỘNG: KÉO CẤU HÌNH TRANG CHỦ KHI VỪA MỞ WEB
+  // (Đoạn này đã được đưa ra ngoài, chạy độc lập để khách hàng cũng xem được)
+  useEffect(() => {
+    fetch('http://127.0.0.1:5000/api/settings/homepage')
+      .then(res => res.json())
+      .then(data => {
+        if(data) {
+            setHomepageConfig(data);
+        }
+      })
+      .catch(err => console.log("Chưa có cấu hình trang chủ:", err));
+  }, []); // <-- Mảng [] giúp lệnh chạy ngay lúc mới mở web (F5)
+  
+
+  const formatPrice = (basePrice) => {
+      const convertedPrice = basePrice * exchangeRates[storeCurrency];
+      if (storeCurrency === 'VND') return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(convertedPrice);
+      if (storeCurrency === 'EUR') return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(convertedPrice);
+      if (storeCurrency === 'JPY') return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(convertedPrice);
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(convertedPrice);
+  };
+
+  const fetchProducts = () => { fetch('http://127.0.0.1:5000/api/products').then(res => res.json()).then(data => setProducts(Array.isArray(data) ? data : [])).catch(err => console.error(err)); };
+  const fetchOrders = () => { fetch('http://127.0.0.1:5000/api/orders').then(res => res.json()).then(data => setOrders(Array.isArray(data) ? data : [])).catch(err => console.error(err)); };
+  const fetchUsers = () => { fetch('http://127.0.0.1:5000/api/users').then(res => res.json()).then(data => setUsers(data)).catch(err => console.error(err)); };
+
+  useEffect(() => { fetchProducts(); }, []);
+  useEffect(() => { if(isAdminMode) { fetchOrders(); fetchUsers(); } }, [isAdminMode]);
+
+  const addToCart = (product) => { 
+      const existingItem = cart.find(item => item._id === product._id && item.image === product.image); 
+      if (existingItem) setCart(cart.map(i => (i._id === product._id && i.image === product.image) ? { ...i, quantity: i.quantity + 1 } : i)); 
+      else setCart([...cart, { ...product, quantity: 1 }]); 
+  };
+
+  const handleSaveProduct = () => {
+      let priceValue = Number(newProduct.price);
+      if (newProduct.inputCurrency === 'VND') { priceValue = priceValue / 25400; }
+      const formattedProduct = { ...newProduct, price: priceValue };
+
+      if (!formattedProduct.name.trim()) return alert("⚠️ Vui lòng điền tên sản phẩm!");
+      if (isNaN(formattedProduct.price) || formattedProduct.price <= 0) return alert("⚠️ Giá tiền không hợp lệ!");
+
+      const url = editingId ? `http://127.0.0.1:5000/api/products/${editingId}` : 'http://127.0.0.1:5000/api/products';
+      fetch(url, { method: editingId ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formattedProduct) })
+      .then(res => res.json())
+      .then(() => { 
+        alert("✨ Thành công!"); fetchProducts(); 
+        setNewProduct({ name: "", price: "", inputCurrency: "VND", image: "", defaultColorName: "", defaultColorCode: "#ffffff", gender: "women", category: "bags", isNewProduct: false, isSale: false, description: "", colors: [] }); 
+        setEditingId(null); setActiveTab('list'); 
+      })
+      .catch(() => alert("⚠️ Thất bại!"));
+  };
+
+  const validatePhoneAndEmail = (phoneStr, emailStr) => {
+    const cleanPhone = phoneStr.trim().replace(/\s+/g, '');
+    const exact_vn_regex = /^(03[2-9]|05[25689]|07[06-9]|08[1-9]|09[0-46-9])[0-9]{7}$/;
+    
+    if (!exact_vn_regex.test(cleanPhone)) { alert("❌ Số điện thoại không hợp lệ!"); return false; }
+    if (/(.)\1{5,}/.test(cleanPhone) || cleanPhone.includes('123456')) { alert("❌ Số điện thoại có dấu hiệu giả mạo!"); return false; }
+
+    if (emailStr) {
+      const emailUser = emailStr.toLowerCase().trim();
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(emailUser)) { alert("❌ Email sai cấu trúc!"); return false; }
+    }
+    return true;
+  };
+
+  const handleCheckout = (paymentMethod, amountToPay, bankName) => {
+    const currentTotal = cart.reduce((a, b) => a + (b.price * b.quantity), 0);
+    const { name, phone, address, email } = customerInfo;
+    
+    if (!name || !phone || !address || !bankName) return alert("⚠️ Vui lòng điền đủ thông tin giao hàng!");
+    const emailToCheck = email || (currentUser ? currentUser.email : "");
+    if (!validatePhoneAndEmail(phone, emailToCheck)) return; 
+
+    const orderData = { customer: customerInfo, items: cart, total: currentTotal, username: currentUser ? currentUser.username : null, paymentInfo: { method: paymentMethod, bank: bankName, amountPaid: amountToPay } };
+    
+    fetch('http://127.0.0.1:5000/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData) })
+    .then(res => res.json())
+    .then(() => { 
+        setCart([]); 
+        setShowCartModal(false); 
+        setCustomerInfo({ name: "", phone: "", address: "", email: "" }); 
+        navigate('/checkout/success'); 
+    })
+    .catch(() => alert("⚠️ Lỗi hệ thống đặt hàng!"));
+  };
+
+  return (
+    <div>
+      <ScrollToTop />
+      
+      <Header 
+        setSidebarOpen={setSidebarOpen} 
+        setIsAdminMode={setIsAdminMode} 
+        currentUser={currentUser} 
+        handleLogout={() => { setCurrentUser(null); setIsAdminMode(false); navigate('/homepage'); }} 
+        setShowLoginModal={setShowLoginModal} 
+        handleAdminClick={() => { isAdminMode ? navigate('/admin') : setShowLoginModal(true); }} 
+        isAdminMode={isAdminMode} 
+        setShowCartModal={setShowCartModal} 
+        totalCount={cart.reduce((a, b) => a + b.quantity, 0)} 
+        setShowSearchModal={setShowSearchModal} 
+        storeCurrency={storeCurrency} 
+        setStoreCurrency={setStoreCurrency}
+        setShowProfileModal={setShowProfileModal}
+      />
+      
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+
+      <main style={{ minHeight: '100vh' }}>
+        <Routes>
+          
+          <Route path="/" element={<Navigate to="/homepage" replace />} />
+          
+          <Route path="/homepage" element={<Home products={products} setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} homepageConfig={homepageConfig} currentUser={currentUser} setCurrentUser={setCurrentUser} />} />
+          <Route path="/product/:id" element={<ProductDetailPage products={products} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser} fetchProducts={fetchProducts} />} />
+          <Route path="/my-reviews" element={<UserReviewsPage products={products} currentUser={currentUser} fetchProducts={fetchProducts} setCurrentUser={setCurrentUser}/>} />
+          <Route path="/checkout/success" element={<CheckoutSuccessPage currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
+          <Route path="/:gender/:categoryId" element={<CategoryPage products={products} setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
+          
+          <Route path="/contact" element={<Contact currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
+            
+          <Route path="/travel" element={<TravelPage products={products} setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
+
+          <Route path="/men/accessories" element={<MenAccessoriesPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
+          <Route path="/men/clothing" element={<MenClothingPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
+          <Route path="/men/bags" element={<MenBagsPage products={products} setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
+          <Route path="/men/jackets" element={<MenJacketsPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
+          <Route path="/:gender/:categoryId" element={<CategoryPage products={products} setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
+          <Route path="/men/new-arrivals" element={<MenNewArrivalsPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
+          <Route path="/men/shoes" element={<MenShoesPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
+          
+
+          <Route path="/women/bags" element={<WomenBagsPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
+          <Route path="/women/clothing" element={<WomenClothingPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
+          <Route path="/women/jewelry" element={<WomenJewelryPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
+          <Route path="/:gender/:categoryId" element={<CategoryPage products={products} setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
+          <Route path="/women/new-arrivals" element={<WomenNewArrivalsPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
+          <Route path="/women/shoes" element={<WomenShoesPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
+
+          <Route path="/admin" element={
+             isAdminMode ? (
+                <AdminPanel 
+                  setIsAdminMode={setIsAdminMode} activeTab={activeTab} setActiveTab={setActiveTab} products={products} 
+                  handleEditClick={(p) => { setNewProduct({ ...p, price: Math.round(p.price * 25400), inputCurrency: 'VND', defaultColorName: p.defaultColorName || "", defaultColorCode: p.defaultColorCode || "#ffffff", colors: p.colors || [] }); setEditingId(p._id); setActiveTab('add'); }} 
+                  handleDeleteProduct={(id) => fetch(`http://127.0.0.1:5000/api/products/${id}`, {method:'DELETE'}).then(() => fetchProducts())} 
+                  newProduct={newProduct} setNewProduct={setNewProduct} 
+                  resetForm={() => setNewProduct({ name: "", price: "", inputCurrency: "VND", image: "", defaultColorName: "", defaultColorCode: "#ffffff", gender: "women", category: "bags", isNewProduct: false, isSale: false, description: "", colors: [] })} 
+                  handleSaveProduct={handleSaveProduct} editingId={editingId} orders={orders} 
+                  updateOrderStatus={(id, status) => fetch(`http://127.0.0.1:5000/api/orders/${id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status})}).then(() => fetchOrders())} 
+                  users={users} handleDeleteUser={(u) => fetch(`http://127.0.0.1:5000/api/users/${u._id}`, {method:'DELETE'}).then(() => fetchUsers())} formatPrice={formatPrice} 
+                  homepageConfig={homepageConfig} setHomepageConfig={setHomepageConfig}
+                  fetchProducts={fetchProducts} 
+                  setOrders={setOrders}
+                />
+             ) : (
+                <div style={{ padding: "150px 40px", textAlign: "center", minHeight: "60vh" }}>
+                    <h2 style={{ fontSize: "24px", letterSpacing: "2px", textTransform: "uppercase" }}>Truy Cập Bị Từ Chối</h2>
+                    <p style={{ color: "#666", marginTop: "15px", marginBottom: "30px" }}>Khu vực này yêu cầu quyền Quản trị viên. Vui lòng đăng nhập để tiếp tục.</p>
+                    <button className="lv-btn-dark" onClick={() => setShowLoginModal(true)}>Đăng Nhập Admin</button>
+                </div>
+             )
+          } />
+          
+
+<Route 
+    path="/wishlist" 
+    element={
+        <WishlistPage 
+            products={products} 
+            currentUser={currentUser} 
+            setCurrentUser={setCurrentUser} 
+            setSelectedProduct={setSelectedProduct} 
+            addToCart={addToCart} 
+            formatPrice={formatPrice} 
+        />
+    } 
+/>
+{/*---*/}
+        </Routes>
+      </main>
+
+      {!isAdminMode && <Footer />}
+
+      <SearchModal showSearchModal={showSearchModal} setShowSearchModal={setShowSearchModal} products={products} setSelectedProduct={setSelectedProduct} formatPrice={formatPrice} />
+      <AuthModal showLoginModal={showLoginModal} setShowLoginModal={setShowLoginModal} setCurrentUser={setCurrentUser} validatePhoneAndEmail={validatePhoneAndEmail} />
+      <CartModal showCartModal={showCartModal} setShowCartModal={setShowCartModal} cart={cart} decreaseQty={(id) => setCart(cart.map(i => i._id === id ? {...i, quantity: i.quantity - 1} : i).filter(i => i.quantity > 0))} increaseQty={(id) => setCart(cart.map(i => i._id === id ? {...i, quantity: i.quantity + 1} : i))} removeFromCart={(id) => setCart(cart.filter(i => i._id !== id))} currentUser={currentUser} customerInfo={customerInfo} setCustomerInfo={setCustomerInfo} formatPrice={formatPrice} handleCheckout={handleCheckout} />
+      <ProductModal selectedProduct={selectedProduct} setSelectedProduct={setSelectedProduct} handleBuyNow={(p) => {addToCart(p); setSelectedProduct(null); setShowCartModal(true);}} addToCart={addToCart} formatPrice={formatPrice} />
+      {showProfileModal && (
+        <ProfileModal 
+          currentUser={currentUser} 
+          setShowProfileModal={setShowProfileModal} 
+          setCurrentUser={setCurrentUser}
+        />
+      )}
+    
+    </div>
+  );
+}
+
+// ==========================================
+// VỎ BỌC ROUTER (ĐÃ HOÀN THIỆN)
+// ==========================================
+export default function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
+  );
+}

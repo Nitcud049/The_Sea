@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120">
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#BF953F;stop-opacity:1" /> <stop offset="50%" style="stop-color:#FCF6BA;stop-opacity:1" /> <stop offset="100%" style="stop-color:#B38728;stop-opacity:1" /> </linearGradient>
+  </defs>
+
+  <rect x="10" y="10" width="380" height="100" rx="0" ry="0" 
+        fill="none" stroke="#111" stroke-width="1.5" opacity="0.8"/>
+  
+  <rect x="15" y="15" width="370" height="90" rx="0" ry="0" 
+        fill="none" stroke="url(#goldGradient)" stroke-width="1" opacity="1"/>
+
+  <text x="130" y="75" font-family="'Didot', 'Times New Roman', serif" font-weight="bold" font-size="70" fill="#111">
+    S
+  </text>
+  <text x="180" y="75" font-family="'Didot', 'Times New Roman', serif" font-weight="bold" font-size="70" fill="#111">
+    E
+  </text>
+  <text x="230" y="75" font-family="'Didot', 'Times New Roman', serif" font-weight="bold" font-size="70" fill="#111">
+    A
+  </text>
+
+  <path d="M 235,62 Q 255,55 275,62" fill="none" stroke="url(#goldGradient)" stroke-width="3" />
+
+  <text x="200" y="98" text-anchor="middle" font-family="'Montserrat', sans-serif" font-size="10" fill="#666" letter-spacing="6" font-weight="bold">
+    LUXURY COLLECTION
+  </text>
+</svg>

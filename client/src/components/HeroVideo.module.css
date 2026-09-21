@@ -1,0 +1,88 @@
+/* --- HỆ THỐNG STYLE CHUẨN UX/UI --- */
+
+.container {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 70px); /* Trừ đi chiều cao của thanh Header */
+  overflow: hidden;
+  background-color: #000;
+}
+
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Đảm bảo video luôn phủ kín */
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.2); /* Lớp đen mờ 20% */
+  pointer-events: none; /* Để chuột xuyên qua lớp này */
+}
+
+.content {
+  position: absolute;
+  bottom: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  color: #fff;
+  width: 100%;
+}
+
+.subtitle {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 15px;
+}
+
+.title {
+  font-size: 32px;
+  font-weight: 400;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
+
+.link {
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 6px;
+  font-weight: 500;
+  color: #fff; /* Ensure link color is white */
+}
+
+/* Style cho nút điều khiển */
+.controlButton {
+  position: absolute;
+  bottom: 40px;
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  opacity: 0.6;
+  padding: 10px;
+  transition: opacity 0.2s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Hiệu ứng Hover cho nút */
+.controlButton:hover {
+  opacity: 1;
+}
+
+.leftControl {
+  composes: controlButton;
+  left: 40px;
+}
+
+.rightControl {
+  composes: controlButton;
+  right: 40px;
+}

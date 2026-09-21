@@ -1,0 +1,13 @@
+{
+  "name": "the-sea-project",
+  "version": "1.0.0",
+  "description": "The Sea Fashion Ecommerce",
+  "scripts": {
+    "server": "npm start --prefix server",
+    "client": "npm start --prefix client",
+    "start": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

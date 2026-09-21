@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SEA - Luxury Fashion</title>
+
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    
+    <style>
+      /* --- 1. CẤU HÌNH PHÔNG CHỮ --- */
+      body, h1, h2, h3, h4, h5, h6 {
+        color: #111; /* Màu đen than chì (không đen kịt) cho sang */
+      }
+      h1, h2, h3, .luxury-font {
+        font-family: "Playfair Display", serif; /* Phông có chân sang trọng */
+      }
+      body, p, a, button, input {
+        font-family: "Montserrat", sans-serif; /* Phông hiện đại, sạch sẽ */
+        font-weight: 300; /* Nét mảnh thanh lịch */
+      }
+
+      /* --- 2. BẢNG MÀU LUXURY (VÀNG KIM & ĐEN) --- */
+      .w3-gold, .w3-hover-gold:hover {
+        color: #000 !important;
+        background-color: #D4AF37 !important; /* Mã màu Vàng Gold chuẩn */
+      }
+      .w3-text-gold {
+        color: #D4AF37 !important;
+      }
+      .w3-black, .w3-hover-black:hover {
+        color: #fff !important;
+        background-color: #121212 !important; /* Đen sâu (Deep Black) */
+      }
+
+      /* --- 3. NÚT BẤM CAO CẤP --- */
+      .btn-luxury {
+        background-color: #121212;
+        color: #D4AF37; /* Chữ vàng trên nền đen */
+        border: 1px solid #121212;
+        transition: all 0.4s ease;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 12px;
+        padding: 10px 20px;
+      }
+      .btn-luxury:hover {
+        background-color: #D4AF37;
+        color: #000;
+        border-color: #D4AF37;
+        cursor: pointer;
+      }
+
+      /* --- 4. THẺ SẢN PHẨM (CARD) --- */
+      .product-card {
+          transition: all 0.5s ease;
+          border: 1px solid #f0f0f0; /* Viền mờ tinh tế */
+          background-color: #fff;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+      }
+      .product-card img {
+          width: 100%;
+          height: 380px; /* Ảnh cao hơn một chút cho giống tạp chí */
+          object-fit: cover;
+          object-position: top center;
+          filter: brightness(0.95); /* Làm ảnh hơi trầm xuống 1 chút cho sang */
+          transition: filter 0.3s;
+      }
+      .product-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+          border-color: #D4AF37; /* Khi di chuột vào thì viền hóa vàng */
+      }
+      .product-card:hover img {
+          filter: brightness(1.05); /* Sáng lên khi chọn */
+      }
+
+      /* Tag Mới/Sale */
+      .tag-luxury {
+        background-color: #D4AF37;
+        color: #000;
+        font-family: "Montserrat", sans-serif;
+        font-weight: 500;
+        font-size: 10px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        padding: 4px 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

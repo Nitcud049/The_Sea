@@ -1,0 +1,215 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+/* Reset & Base */
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif; /* Phông chữ không chân chuẩn UI hiện đại */
+  background-color: #ffffff;
+  color: #1a1a1a;
+  overflow-x: hidden;
+}
+
+/* Font Logo đặc trưng của THE SEA (Mô phỏng LV) */
+.the-sea-logo {
+  font-family: 'Playfair Display', serif;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 32px;
+  font-weight: 400;
+  cursor: pointer;
+  margin: 0;
+}
+
+/* Nút bấm kiểu LV */
+.lv-btn-dark {
+  background-color: #19110b; /* Màu đen tuyền pha chút nâu đặc trưng của đồ da */
+  color: #ffffff;
+  border: 1px solid #19110b;
+  padding: 14px 32px;
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 0; /* Bo góc sắc nét */
+}
+
+.lv-btn-dark:hover {
+  background-color: #ffffff;
+  color: #19110b;
+}
+
+.lv-btn-light {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #1a1a1a;
+  border: 1px solid #ffffff;
+  padding: 14px 32px;
+  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 0;
+}
+
+.lv-btn-light:hover {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  border-color: #1a1a1a;
+}
+
+/* Thanh Header */
+.lv-header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 70px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e5e5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  z-index: 1000;
+}
+
+.header-icon-text {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+/* Product Card */
+.lv-product-card {
+  text-align: center;
+  cursor: pointer;
+  margin-bottom: 40px;
+}
+
+.lv-product-img-wrapper {
+  position: relative;
+  overflow: hidden;
+  background-color: #f6f5f3; /* Màu nền xám nhạt làm nổi bật sản phẩm */
+}
+
+.lv-product-img {
+  width: 100%;
+  height: 550px;
+  object-fit: cover;
+  transition: transform 0.8s ease;
+}
+
+.lv-product-card:hover .lv-product-img {
+  transform: scale(1.05);
+}
+
+.lv-product-name {
+  font-size: 14px;
+  font-weight: 400;
+  margin: 15px 0 5px 0;
+  color: #1a1a1a;
+}
+
+.lv-product-price {
+  font-size: 14px;
+  color: #666;
+}
+
+.quick-add-btn {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  width: 80%;
+}
+
+.lv-product-card:hover .quick-add-btn {
+  opacity: 1;
+}
+
+/* Scrollbar mỏng */
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+::-webkit-scrollbar-thumb {
+  background: #888; 
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
+
+/* --- HIỆU ỨNG CHUẨN LOUIS VUITTON --- */
+
+/* 1. Nút bấm trong suốt (Giống nút "Khám phá thêm" trong video) */
+.lv-btn-transparent {
+  background-color: transparent;
+  color: #ffffff;
+  border: 1px solid #ffffff;
+  padding: 12px 30px;
+  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  border-radius: 20px; /* Bo góc tròn nhẹ như video */
+}
+.lv-btn-transparent:hover {
+  background-color: #ffffff;
+  color: #1a1a1a;
+}
+
+/* 2. Video Background Tràn Viền */
+.hero-video-container {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 70px);
+  overflow: hidden;
+  background-color: #000;
+}
+.hero-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Đảm bảo video lấp đầy màn hình mà không bị méo */
+  opacity: 0.8; /* Hơi tối lại để nổi bật chữ */
+}
+
+/* 3. Hoạt ảnh Modal Đăng Nhập & Sidebar (Trượt êm ái) */
+.lv-modal-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 4. Tinh chỉnh Input Form (Đăng nhập, Đăng ký) */
+.lv-input {
+  width: 100%;
+  padding: 15px 0;
+  border: none;
+  border-bottom: 1px solid #ccc;
+  background: transparent;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+.lv-input:focus {
+  border-bottom: 1px solid #1a1a1a;
+}
+
+/* 5. Tinh chỉnh Navbar/Sidebar cho thanh thoát */
+.w3-sidebar {
+  box-shadow: none !important; /* Bỏ bóng đổ cục mịch */
+  border-right: 1px solid #f1f1f1;
+}
