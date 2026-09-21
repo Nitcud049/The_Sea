@@ -68,9 +68,8 @@ app.get('/api/admin/generate-fake-likes', async (req, res) => {
 // ==========================================
 // 5. KẾT NỐI DATABASE & CHẠY SERVER
 // ==========================================
-mongoose.connect('mongodb://127.0.0.1:27017/shop_quanao')
-  .then(() => console.log("MongoDB Connected Chuẩn! Đã sẵn sàng."))
-  .catch(err => console.log("Lỗi kết nối DB:", err));
+const connectDB = require('./config/db');
+connectDB();
 
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server đang chạy tại http://localhost:${PORT}`));

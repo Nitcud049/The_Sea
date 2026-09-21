@@ -10,10 +10,13 @@ function ProfileModal({ setShowProfileModal, currentUser, setCurrentUser }) {
     phonePrefix: '+84',
     phoneNumber: '',
     country: 'Việt Nam',
+    address: '',
     dobDay: '4',
     dobMonth: 'September',
     dobYear: '2005'
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Tự động điền thông tin có sẵn từ currentUser khi mở Modal
   useEffect(() => {
@@ -23,11 +26,28 @@ function ProfileModal({ setShowProfileModal, currentUser, setCurrentUser }) {
       const firstName = nameParts.length > 0 ? nameParts[nameParts.length - 1] : '';
       const lastName = nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : '';
 
+      // Tách ngày sinh nếu đã lưu dạng YYYY-Month-DD hoặc YYYY-MM-DD
+      let dobDay = '4', dobMonth = 'September', dobYear = '2005';
+      if (currentUser.dob) {
+        const parts = currentUser.dob.split('-');
+        if (parts.length === 3) {
+          dobYear = parts[0];
+          dobMonth = parts[1];
+          dobDay = parts[2];
+        }
+      }
+
       setFormData(prev => ({
         ...prev,
+        title: currentUser.title || 'Khác',
         firstName: currentUser.firstName || firstName || '',
         lastName: currentUser.lastName || lastName || '',
         phoneNumber: currentUser.phone || '',
+        country: currentUser.country || 'Việt Nam',
+        address: currentUser.address || '',
+        dobDay: currentUser.dobDay || dobDay,
+        dobMonth: currentUser.dobMonth || dobMonth,
+        dobYear: currentUser.dobYear || dobYear
       }));
     }
   }, [currentUser]);
@@ -45,24 +65,34 @@ function ProfileModal({ setShowProfileModal, currentUser, setCurrentUser }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (isMissingInfo) {
-      alert('Vui lòng điền đầy đủ các thông tin bắt buộc (*)');
+    if (!currentUser || !currentUser._id) {
+      alert('⚠️ Lỗi: Không tìm thấy ID người dùng! Vui lòng đăng nhập lại.');
       return;
     }
 
-    if (!currentUser || !currentUser._id) {
-      alert('Lỗi: Không tìm thấy ID người dùng!');
+    if (!formData.firstName.trim()) {
+      alert('⚠️ Vui lòng nhập Tên của bạn!');
       return;
     }
+
+    if (!formData.phoneNumber.trim()) {
+      alert('⚠️ Vui lòng nhập Số điện thoại liên hệ!');
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
       // 1. Lắp ráp dữ liệu từ form 
+      const fullName = `${formData.lastName} ${formData.firstName}`.trim() || formData.firstName || currentUser.name || currentUser.username;
+      
       const updateData = {
         title: formData.title,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        name: `${formData.lastName} ${formData.firstName}`.trim(), // Ghép lại thành 'name' để lưu vào CSDL
-        phone: formData.phoneNumber,
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        name: fullName,
+        phone: formData.phoneNumber.trim(),
+        address: formData.address.trim() || currentUser.address || 'Chưa cập nhật',
         dob: `${formData.dobYear}-${formData.dobMonth}-${formData.dobDay}`,
         country: formData.country
       };
@@ -76,27 +106,31 @@ function ProfileModal({ setShowProfileModal, currentUser, setCurrentUser }) {
         body: JSON.stringify(updateData)
       });
 
-      if (!response.ok) {
-        throw new Error('Lỗi khi cập nhật thông tin');
-      }
+      const data = await response.json();
 
-      // Backend trả về thông tin user mới nhất
-      const updatedUser = await response.json();
-
-      // 3. Thông báo thành công và cập nhật UI
-      alert('Đã cập nhật thông tin cá nhân thành công!');
-      
-      // Cập nhật lại state user ở App.js để tên/sđt trên Header thay đổi theo
-      if (setCurrentUser) {
-        setCurrentUser(updatedUser.user || updatedUser); // Phụ thuộc vào cách backend bạn trả về data
+      if (response.ok && data.success) {
+        // 3. Thông báo thành công và cập nhật UI
+        alert('✨ Đã cập nhật thông tin hồ sơ cá nhân thành công!');
+        
+        // Cập nhật lại state user ở App để tên/sđt hiển thị đúng trên Header
+        if (typeof setCurrentUser === 'function') {
+          setCurrentUser(prev => ({
+            ...prev,
+            ...(data.user || updateData)
+          }));
+        }
+        
+        // Đóng modal
+        setShowProfileModal(false);
+      } else {
+        alert('⚠️ ' + (data.message || 'Không thể lưu thông tin lúc này.'));
       }
-      
-      // Đóng modal
-      setShowProfileModal(false);
 
     } catch (error) {
-      console.error('Lỗi cập nhật:', error);
-      alert('Không thể lưu thông tin lúc này. Vui lòng kiểm tra lại Backend (route PUT /api/users/:id).');
+      console.error('Lỗi cập nhật profile:', error);
+      alert('⚠️ Lỗi kết nối đến máy chủ Backend. Vui lòng kiểm tra lại kết nối!');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -104,29 +138,28 @@ function ProfileModal({ setShowProfileModal, currentUser, setCurrentUser }) {
   const isGoogleLogin = currentUser?.googleId || (currentUser?.email && !currentUser?.password); 
   const loginMethodText = isGoogleLogin 
     ? `Google: ${currentUser?.email}` 
-    : `Thành viên: ${currentUser?.name || currentUser?.username}`;
-
-  // Kiểm tra thiếu thông tin (số điện thoại hoặc ngày sinh)
-  const isMissingInfo = !formData.phoneNumber || !formData.dobDay || !formData.firstName;
+    : `Thành viên: ${currentUser?.email || currentUser?.username}`;
 
   // --- STYLES ---
   const overlayStyle = {
     position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 1999,
+    backgroundColor: 'rgba(0, 0, 0, 0.55)', backdropFilter: 'blur(4px)', zIndex: 1999,
     transition: 'opacity 0.3s ease'
   };
 
   const modalStyle = {
-    position: 'fixed', top: 0, right: 0, width: '100%', maxWidth: '450px', height: '100vh',
+    position: 'fixed', top: 0, right: 0, width: '100%', maxWidth: '480px', height: '100vh',
     backgroundColor: '#ffffff', zIndex: 2000, overflowY: 'auto',
-    padding: '30px 40px', boxShadow: '-5px 0 15px rgba(0,0,0,0.1)',
-    display: 'flex', flexDirection: 'column', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif"
+    padding: '35px 40px', boxShadow: '-10px 0 30px rgba(0,0,0,0.15)',
+    display: 'flex', flexDirection: 'column', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
+    animation: 'slideLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
   };
 
-  const labelStyle = { display: 'block', fontSize: '12px', marginBottom: '8px', color: '#1a1a1a' };
+  const labelStyle = { display: 'block', fontSize: '12px', fontWeight: '600', marginBottom: '8px', color: '#1a1a1a', letterSpacing: '0.5px' };
   const inputStyle = {
     width: '100%', padding: '12px 15px', marginBottom: '20px', border: '1px solid #d9d9d9',
-    borderRadius: '4px', fontSize: '14px', outline: 'none', backgroundColor: '#fff'
+    borderRadius: '6px', fontSize: '14px', outline: 'none', backgroundColor: '#fff',
+    transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
   };
   const rowStyle = { display: 'flex', gap: '15px', marginBottom: '20px' };
 
@@ -136,82 +169,100 @@ function ProfileModal({ setShowProfileModal, currentUser, setCurrentUser }) {
 
       <div style={modalStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '400', margin: 0 }}>Thông tin cá nhân</h2>
-          <button onClick={handleClose} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#666' }}>&times;</button>
+          <h2 style={{ fontSize: '22px', fontWeight: '600', margin: 0, letterSpacing: '0.5px' }}>Hồ Sơ Cá Nhân</h2>
+          <button 
+            onClick={handleClose} 
+            style={{ 
+              background: '#f3f4f6', border: 'none', borderRadius: '50%', 
+              width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '18px', cursor: 'pointer', color: '#555' 
+            }}
+          >
+            &times;
+          </button>
         </div>
 
-        <p style={{ fontSize: '13px', color: '#666', marginTop: 0, marginBottom: '20px', fontStyle: 'italic' }}>
-          Đang đăng nhập bằng {loginMethodText}
+        <p style={{ fontSize: '13px', color: '#777', marginTop: 0, marginBottom: '20px' }}>
+          Đang đăng nhập bằng: <strong>{loginMethodText}</strong>
         </p>
 
-        {isMissingInfo && (
-          <div style={{ backgroundColor: '#fff1f0', border: '1px solid #ffa39e', padding: '10px 15px', borderRadius: '4px', marginBottom: '20px' }}>
-            <p style={{ margin: 0, fontSize: '13px', color: '#cf1322' }}>
-              * Vui lòng bổ sung các thông tin còn thiếu để chúng tôi có thể hỗ trợ bạn tốt nhất.
-            </p>
-          </div>
-        )}
-
-        <p style={{ fontSize: '12px', textAlign: 'right', marginTop: 0, color: '#666' }}>Thông tin bắt buộc *</p>
+        <p style={{ fontSize: '12px', textAlign: 'right', marginTop: 0, color: '#999' }}>Thông tin bắt buộc *</p>
 
         <form onSubmit={handleSubmit}>
-          <label style={labelStyle}>Tiêu đề *</label>
+          <label style={labelStyle}>Danh xưng *</label>
           <select name="title" value={formData.title} onChange={handleChange} style={inputStyle}>
             <option value="Khác">Khác</option>
             <option value="Ông">Ông</option>
             <option value="Bà">Bà</option>
           </select>
 
-          <label style={labelStyle}>Tên *</label>
-          <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} style={inputStyle} required />
+          <div style={rowStyle}>
+            <div style={{ width: '50%' }}>
+              <label style={labelStyle}>Họ</label>
+              <input 
+                type="text" name="lastName" value={formData.lastName} onChange={handleChange} 
+                style={{ ...inputStyle, marginBottom: 0 }} 
+                placeholder="Nguyễn"
+              />
+            </div>
+            <div style={{ width: '50%' }}>
+              <label style={labelStyle}>Tên *</label>
+              <input 
+                type="text" name="firstName" value={formData.firstName} onChange={handleChange} 
+                style={{ ...inputStyle, marginBottom: 0 }} 
+                placeholder="Văn A" required 
+              />
+            </div>
+          </div>
 
-          <label style={labelStyle}>Họ *</label>
-          <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} style={inputStyle} required />
-
-          <label style={{...labelStyle, textTransform: 'uppercase'}}>Số điện thoại *</label>
-          <select name="phoneType" value={formData.phoneType} onChange={handleChange} style={inputStyle}>
-            <option value="Di động">Di động</option>
-            <option value="Cố định">Cố định</option>
-          </select>
-
+          <label style={{...labelStyle, textTransform: 'uppercase', marginTop: '10px'}}>Số điện thoại *</label>
           <div style={rowStyle}>
             <select name="phonePrefix" value={formData.phonePrefix} onChange={handleChange} style={{ ...inputStyle, width: '35%', marginBottom: 0 }}>
-              <option value="+84">+84</option>
-              <option value="+1">+1</option>
+              <option value="+84">+84 (VN)</option>
+              <option value="+1">+1 (US)</option>
             </select>
             <input 
               type="tel" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} 
               style={{ ...inputStyle, width: '65%', marginBottom: 0 }} 
-              placeholder="Nhập số điện thoại" required
+              placeholder="0912345678" required
             />
           </div>
 
-          <label style={{...labelStyle, marginTop: '20px'}}>Quốc gia/Khu vực và vùng lãnh thổ *</label>
+          <label style={{...labelStyle, marginTop: '10px'}}>Địa chỉ giao hàng mặc định</label>
+          <input 
+            type="text" name="address" value={formData.address} onChange={handleChange} 
+            style={inputStyle} 
+            placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố"
+          />
+
+          <label style={labelStyle}>Quốc gia/Khu vực *</label>
           <select name="country" value={formData.country} onChange={handleChange} style={inputStyle}>
             <option value="Việt Nam">Việt Nam</option>
-            <option value="Mỹ">Mỹ</option>
+            <option value="Mỹ">Mỹ (United States)</option>
+            <option value="Nhật Bản">Nhật Bản</option>
+            <option value="Pháp">Pháp</option>
           </select>
 
           <label style={{...labelStyle, textTransform: 'uppercase'}}>Ngày sinh *</label>
           <div style={rowStyle}>
-            <select name="dobDay" value={formData.dobDay} onChange={handleChange} style={{ ...inputStyle, width: '25%', marginBottom: 0 }} required>
+            <select name="dobDay" value={formData.dobDay} onChange={handleChange} style={{ ...inputStyle, width: '28%', marginBottom: 0 }} required>
               <option value="">Ngày</option>
               {Array.from({ length: 31 }, (_, i) => <option key={i+1} value={i+1}>{i+1}</option>)}
             </select>
-            <select name="dobMonth" value={formData.dobMonth} onChange={handleChange} style={{ ...inputStyle, width: '45%', marginBottom: 0 }} required>
+            <select name="dobMonth" value={formData.dobMonth} onChange={handleChange} style={{ ...inputStyle, width: '42%', marginBottom: 0 }} required>
               <option value="">Tháng</option>
-              <option value="January">January</option>
-              <option value="February">February</option>
-              <option value="March">March</option>
-              <option value="April">April</option>
-              <option value="May">May</option>
-              <option value="June">June</option>
-              <option value="July">July</option>
-              <option value="August">August</option>
-              <option value="September">September</option>
-              <option value="October">October</option>
-              <option value="November">November</option>
-              <option value="December">December</option>
+              <option value="January">Tháng 1</option>
+              <option value="February">Tháng 2</option>
+              <option value="March">Tháng 3</option>
+              <option value="April">Tháng 4</option>
+              <option value="May">Tháng 5</option>
+              <option value="June">Tháng 6</option>
+              <option value="July">Tháng 7</option>
+              <option value="August">Tháng 8</option>
+              <option value="September">Tháng 9</option>
+              <option value="October">Tháng 10</option>
+              <option value="November">Tháng 11</option>
+              <option value="December">Tháng 12</option>
             </select>
             <select name="dobYear" value={formData.dobYear} onChange={handleChange} style={{ ...inputStyle, width: '30%', marginBottom: 0 }} required>
               <option value="">Năm</option>
@@ -224,15 +275,18 @@ function ProfileModal({ setShowProfileModal, currentUser, setCurrentUser }) {
 
           <button 
             type="submit" 
+            disabled={isSubmitting}
             style={{
-              width: '100%', padding: '16px', backgroundColor: '#000', color: '#fff',
-              border: 'none', borderRadius: '30px', fontSize: '14px', fontWeight: 'bold',
-              cursor: 'pointer', marginTop: '30px', transition: 'background-color 0.3s'
+              width: '100%', padding: '16px', backgroundColor: '#1a1a1a', color: '#fff',
+              border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: '600',
+              cursor: isSubmitting ? 'not-allowed' : 'pointer', marginTop: '25px', 
+              transition: 'background-color 0.2s ease, opacity 0.2s ease',
+              opacity: isSubmitting ? 0.7 : 1
             }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#333'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#000'}
+            onMouseOver={(e) => { if(!isSubmitting) e.target.style.backgroundColor = '#333'; }}
+            onMouseOut={(e) => { if(!isSubmitting) e.target.style.backgroundColor = '#1a1a1a'; }}
           >
-            Lưu thông tin của bạn
+            {isSubmitting ? 'Đang lưu thông tin...' : 'Lưu Thông Tin Của Bạn'}
           </button>
         </form>
       </div>

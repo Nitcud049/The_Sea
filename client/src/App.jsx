@@ -19,6 +19,7 @@ import CartModal from './components/modals/CartModal';
 import ProductModal from './components/modals/ProductModal';
 import SearchModal from './components/modals/SearchModal';
 import ProfileModal from './components/modals/ProfileModal';
+import OrdersModal from './components/modals/OrdersModal';
 import CategoryPage from './pages/CategoryPage';
 
 // ==========================================
@@ -79,19 +80,36 @@ function CheckoutSuccessPage() {
 // COMPONENT NỘI DUNG CHÍNH CỦA ỨNG DỤNG
 // ==========================================
 function AppContent() {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isHomePage = location.pathname === '/' || location.pathname === '/homepage'; 
   
-  // --- STATE ---
+  // --- STATE VỚI LOCAL STORAGE (CHỐNG VĂNG ĐĂNG XUẤT KHI F5 / RELOAD) ---
   const [products, setProducts] = useState([]);
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => {
+    try {
+      const saved = localStorage.getItem('the_sea_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
-  const [currentUser, setCurrentUser] = useState(null); 
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('the_sea_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  }); 
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showCartModal, setShowCartModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false); 
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showOrdersModal, setShowOrdersModal] = useState(false);
   const [customerInfo, setCustomerInfo] = useState({ name: "", phone: "", address: "", email: "" });
   const [selectedProduct, setSelectedProduct] = useState(null); 
   
@@ -111,16 +129,29 @@ function AppContent() {
 
   const exchangeRates = { USD: 1, VND: 25400, EUR: 0.92, JPY: 151 };
 
-  // 1. USE-EFFECT ĐIỀU CHỈNH QUYỀN ADMIN (Giữ nguyên các chức năng Admin)
+  // TỰ ĐỘNG ĐỒNG BỘ LOCAL STORAGE KHI USER THAY ĐỔI
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem('the_sea_user', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem('the_sea_user');
+    }
+  }, [currentUser]);
+
+  // TỰ ĐỘNG ĐỒNG BỘ GIỎ HÀNG VÀO LOCAL STORAGE
+  useEffect(() => {
+    localStorage.setItem('the_sea_cart', JSON.stringify(cart));
+  }, [cart]);
+
+  // 1. USE-EFFECT ĐIỀU CHỈNH QUYỀN ADMIN
   useEffect(() => {
     if (currentUser && currentUser.username === 'admin') {
       setIsAdminMode(true);
-      setShowLoginModal(false); 
-      navigate('/admin');       
+      setShowLoginModal(false);     
     } else {
       setIsAdminMode(false);
     }
-  }, [currentUser, navigate]);
+  }, [currentUser]);
 
   // 2. USE-EFFECT CÔNG CỘNG: KÉO CẤU HÌNH TRANG CHỦ KHI VỪA MỞ WEB
   // (Đoạn này đã được đưa ra ngoài, chạy độc lập để khách hàng cũng xem được)
@@ -230,11 +261,12 @@ function AppContent() {
         storeCurrency={storeCurrency} 
         setStoreCurrency={setStoreCurrency}
         setShowProfileModal={setShowProfileModal}
+        setShowOrdersModal={setShowOrdersModal}
       />
       
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-      <main style={{ minHeight: '100vh' }}>
+      <main style={{ minHeight: '100vh', paddingTop: isHomePage ? 0 : '75px' }}>
         <Routes>
           
           <Route path="/" element={<Navigate to="/homepage" replace />} />
@@ -275,7 +307,27 @@ function AppContent() {
                   resetForm={() => setNewProduct({ name: "", price: "", inputCurrency: "VND", image: "", defaultColorName: "", defaultColorCode: "#ffffff", gender: "women", category: "bags", isNewProduct: false, isSale: false, description: "", colors: [] })} 
                   handleSaveProduct={handleSaveProduct} editingId={editingId} orders={orders} 
                   updateOrderStatus={(id, status) => fetch(`http://127.0.0.1:5000/api/orders/${id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status})}).then(() => fetchOrders())} 
-                  users={users} handleDeleteUser={(u) => fetch(`http://127.0.0.1:5000/api/users/${u._id}`, {method:'DELETE'}).then(() => fetchUsers())} formatPrice={formatPrice} 
+                  users={users} 
+                  handleDeleteUser={(userOrId) => {
+                    const id = typeof userOrId === 'object' ? userOrId?._id : userOrId;
+                    if (!id) return;
+                    if (window.confirm("Bạn có chắc chắn muốn xóa khách hàng này không?")) {
+                      fetch(`http://127.0.0.1:5000/api/users/${id}`, { method: 'DELETE' })
+                        .then(res => res.json())
+                        .then(data => {
+                          if (data.success) {
+                            fetchUsers();
+                          } else {
+                            alert("⚠️ " + (data.message || "Không thể xóa khách hàng!"));
+                          }
+                        })
+                        .catch(err => {
+                          console.error("Lỗi xóa khách hàng:", err);
+                          alert("⚠️ Lỗi kết nối khi xóa khách hàng!");
+                        });
+                    }
+                  }} 
+                  formatPrice={formatPrice} 
                   homepageConfig={homepageConfig} setHomepageConfig={setHomepageConfig}
                   fetchProducts={fetchProducts} 
                   setOrders={setOrders}
@@ -320,6 +372,12 @@ function AppContent() {
           setCurrentUser={setCurrentUser}
         />
       )}
+      <OrdersModal 
+        showOrdersModal={showOrdersModal} 
+        setShowOrdersModal={setShowOrdersModal} 
+        currentUser={currentUser} 
+        formatPrice={formatPrice} 
+      />
     
     </div>
   );

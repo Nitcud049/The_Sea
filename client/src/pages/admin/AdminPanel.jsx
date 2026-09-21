@@ -290,7 +290,8 @@ function AdminPanel({
                 <thead>
                   <tr>
                     <th className={styles.th}>Tên Khách Hàng</th>
-                    <th className={styles.th}>Email</th>
+                    <th className={styles.th}>Email / Username</th>
+                    <th className={styles.th}>Số Điện Thoại</th>
                     <th className={styles.th} style={{textAlign: 'right'}}>Thao Tác</th>
                   </tr>
                 </thead>
@@ -299,14 +300,15 @@ function AdminPanel({
                     users.filter(u => u.username !== 'admin').map(user => (
                       <tr key={user._id}>
                         <td className={styles.td} style={{fontWeight: 'bold'}}>{user.name || user.username}</td>
-                        <td className={styles.td}>{user.email}</td>
+                        <td className={styles.td}>{user.email || user.username}</td>
+                        <td className={styles.td}>{user.phone || 'Chưa cập nhật'}</td>
                         <td className={styles.td} style={{textAlign: 'right'}}>
                           <button onClick={() => handleDeleteUser(user._id)} className={`${styles.btnPrimary} ${styles.btnDanger}`} style={{ padding: '8px 15px' }}>Xóa</button>
                         </td>
                       </tr>
                     ))
                   ) : (
-                    <tr><td colSpan="3" className={styles.td} style={{textAlign: 'center'}}>Chưa có khách hàng nào.</td></tr>
+                    <tr><td colSpan="4" className={styles.td} style={{textAlign: 'center'}}>Chưa có khách hàng nào.</td></tr>
                   )}
                 </tbody>
               </table>

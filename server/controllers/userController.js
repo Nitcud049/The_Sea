@@ -242,31 +242,63 @@ const getAllUsers = async (req, res) => {
 };
 
 const updateUser = async (req, res) => { 
-    try { await User.findByIdAndUpdate(req.params.id, req.body); res.json({ success: true, message: "Cập nhật người dùng thành công!" }); } 
-    catch (err) { res.status(500).json({ message: err.message }); } 
+    try { 
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ success: false, message: "ID người dùng không hợp lệ" });
+        }
+        const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, { new: true }); 
+        if (!updatedUser) {
+            return res.status(404).json({ success: false, message: "Không tìm thấy người dùng" });
+        }
+        res.status(200).json({ success: true, message: "Cập nhật người dùng thành công!", user: updatedUser }); 
+    } 
+    catch (err) { 
+        console.error("🔥 Lỗi updateUser:", err);
+        res.status(500).json({ success: false, message: err.message }); 
+    } 
 };
 
 const deleteUser = async (req, res) => { 
-    try { await User.findByIdAndDelete(req.params.id); res.status(200).json({ success: true }); } 
-    catch (err) { res.status(500).json({ message: err.message }); } 
+    try { 
+        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            return res.status(400).json({ success: false, message: "ID người dùng không hợp lệ" });
+        }
+        const deleted = await User.findByIdAndDelete(req.params.id); 
+        if (!deleted) {
+            return res.status(404).json({ success: false, message: "Không tìm thấy người dùng cần xóa" });
+        }
+        res.status(200).json({ success: true, message: "Đã xóa khách hàng thành công" }); 
+    } 
+    catch (err) { 
+        console.error("🔥 Lỗi deleteUser:", err);
+        res.status(500).json({ success: false, message: err.message }); 
+    } 
 };
+
+const mongoose = require('mongoose');
 
 const toggleWishlist = async (req, res) => {
     try {
         const { productId } = req.body;
-        const user = await User.findById(req.params.id);
-        
-        if (!user) return res.status(404).json({ success: false, message: "Không tìm thấy người dùng!" });
-        if (!user.wishlist) user.wishlist = [];
+        if (!productId) return res.status(400).json({ success: false, message: "Thiếu productId!" });
 
-        const index = user.wishlist.indexOf(productId);
+        const user = await User.findById(req.params.id);
+        if (!user) return res.status(404).json({ success: false, message: "Không tìm thấy người dùng!" });
+        if (!Array.isArray(user.wishlist)) user.wishlist = [];
+
+        const pIdStr = String(productId);
+        const index = user.wishlist.findIndex(id => String(id) === pIdStr);
         
         if (index === -1) {
-            user.wishlist.push(productId); 
-            await Product.findByIdAndUpdate(productId, { $inc: { likesCount: 1 } });
+            user.wishlist.push(pIdStr); 
+            if (mongoose.Types.ObjectId.isValid(pIdStr)) {
+                await Product.findByIdAndUpdate(pIdStr, { $inc: { likesCount: 1 } }).catch(() => {});
+            }
         } else {
             user.wishlist.splice(index, 1); 
-            await Product.findByIdAndUpdate(productId, { $inc: { likesCount: -1 } });
+            if (mongoose.Types.ObjectId.isValid(pIdStr)) {
+                await Product.findByIdAndUpdate(pIdStr, { $inc: { likesCount: -1 } }).catch(() => {});
+            }
         }
         
         await user.save();

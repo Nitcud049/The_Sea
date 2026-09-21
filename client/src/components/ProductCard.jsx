@@ -15,31 +15,50 @@ function ProductCard({ product, setSelectedProduct, addToCart, formatPrice, curr
   // =======================================
   // LOGIC THẢ TIM (WISHLIST)
   // =======================================
-  // Kiểm tra xem ID sản phẩm này có nằm trong wishlist của user đang đăng nhập không
-  const isLiked = currentUser?.wishlist?.includes(product._id);
+  const productIdStr = String(product?._id || product?.id || '');
+  const isLiked = Boolean(currentUser?.wishlist?.some(id => String(id) === productIdStr));
 
   const handleToggleHeart = async (e) => {
-    e.stopPropagation(); // Ngăn không cho sự kiện click lan ra ngoài (tránh chuyển trang chi tiết)
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
     
     if (!currentUser) {
-        alert("Vui lòng đăng nhập để lưu sản phẩm yêu thích!");
-        return;
+      alert("Vui lòng đăng nhập để lưu sản phẩm vào danh sách Yêu thích!");
+      return;
+    }
+
+    if (!currentUser._id) {
+      alert("Không tìm thấy thông tin tài khoản!");
+      return;
+    }
+
+    if (!productIdStr) {
+      console.error("Không tìm thấy ID sản phẩm");
+      return;
     }
 
     try {
-        const res = await fetch(`http://127.0.0.1:5000/api/users/${currentUser._id}/wishlist`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productId: product._id })
-        });
-        const data = await res.json();
-        
-        if (data.success) {
-            // Cập nhật lại state currentUser để icon Trái tim đổi màu ngay lập tức
-            setCurrentUser({ ...currentUser, wishlist: data.wishlist });
+      const res = await fetch(`http://127.0.0.1:5000/api/users/${currentUser._id}/wishlist`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: productIdStr })
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        if (typeof setCurrentUser === 'function') {
+          setCurrentUser(prev => ({
+            ...prev,
+            wishlist: data.wishlist
+          }));
         }
+      } else {
+        alert("⚠️ " + (data.message || "Không thể cập nhật danh sách yêu thích!"));
+      }
     } catch (error) {
-        console.error("Lỗi thả tim:", error);
+      console.error("Lỗi thả tim:", error);
     }
   };
 
@@ -47,7 +66,6 @@ function ProductCard({ product, setSelectedProduct, addToCart, formatPrice, curr
   let label = "";
   if (product.isNewProduct) label = "Mới - Có thể cá nhân hóa";
   if (product.isSale) label = "Đang giảm giá";
-  // Mẹo CSS: Ký tự \u00A0 là khoảng trắng vô hình, giúp giữ nguyên chiều cao dù sp không có nhãn
   const displayLabel = label || "\u00A0"; 
 
   return (
@@ -67,7 +85,7 @@ function ProductCard({ product, setSelectedProduct, addToCart, formatPrice, curr
         <div style={{ position: 'relative', overflow: 'hidden', aspectRatio: '1/1', backgroundColor: '#f6f5f3', borderRadius: '4px', marginBottom: '12px' }}>
           
           {/* Icon hộp 3D (Góc trái LV) */}
-          <div style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 2, padding: '4px', backgroundColor: '#fff', borderRadius: '2px' }}>
+          <div style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 2, padding: '4px', backgroundColor: '#fff', borderRadius: '2px', pointerEvents: 'none' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="1.5">
               <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
               <polyline points="2 17 12 22 22 17"></polyline>
@@ -75,26 +93,37 @@ function ProductCard({ product, setSelectedProduct, addToCart, formatPrice, curr
             </svg>
           </div>
 
-          {/* SỬA ĐỔI: Icon Trái tim (Góc phải LV) - Gắn hàm click và đổi icon dựa trên state isLiked */}
-          <div 
+          {/* SỬA ĐỔI: Nút Trái tim (Góc phải) - Tăng zIndex và diện tích bấm */}
+          <button 
+            type="button"
             onClick={handleToggleHeart}
+            title={isLiked ? "Bỏ yêu thích" : "Thêm vào yêu thích"}
             style={{ 
-              position: 'absolute', top: '12px', right: '12px', zIndex: 3, 
-              cursor: 'pointer', padding: '5px' 
+              position: 'absolute', top: '10px', right: '10px', zIndex: 10, 
+              cursor: 'pointer', padding: '6px',
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              border: 'none',
+              borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+              transition: 'transform 0.2s ease, background-color 0.2s ease',
+              outline: 'none'
             }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.15)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
           >
             {isLiked ? (
                // Tim đỏ (đã thích)
-               <svg width="20" height="20" viewBox="0 0 24 24" fill="#ee4d2d" stroke="#ee4d2d" strokeWidth="1.2">
+               <svg width="18" height="18" viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" strokeWidth="1.2">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                </svg>
             ) : (
                // Tim rỗng (chưa thích)
-               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="1.5">
+               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="1.8">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                </svg>
             )}
-          </div>
+          </button>
 
           <img 
             src={displayImage} 

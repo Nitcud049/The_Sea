@@ -5,8 +5,8 @@ function WishlistPage({ products, currentUser, setCurrentUser, setSelectedProduc
     // 🧠 LOGIC CỐT LÕI: Bộ lọc ma thuật
     // Hệ thống sẽ dò trong toàn bộ kho hàng (products), 
     // Nếu ID của sản phẩm nào nằm trong danh sách "wishlist" của user thì mới lấy ra để hiển thị.
-    const wishlistedProducts = products.filter(product => 
-        currentUser?.wishlist?.includes(product._id)
+    const wishlistedProducts = (products || []).filter(product => 
+        currentUser?.wishlist?.some(id => String(id) === String(product._id || product.id))
     );
 
     return (

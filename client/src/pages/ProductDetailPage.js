@@ -8,28 +8,35 @@ function ProductDetailPage({ products, addToCart, formatPrice, currentUser, fetc
   const [newReview, setNewReview] = useState('');
   const [rating, setRating] = useState(5);
   const [displayImg, setDisplayImg] = useState('');
-  const isLiked = currentUser?.wishlist?.includes(product?._id);
+  const productIdStr = String(product?._id || product?.id || '');
+  const isLiked = Boolean(currentUser?.wishlist?.some(id => String(id) === productIdStr));
 
-    // 3. Hàm xử lý thả tim (Giống hệt bên ProductCard)
-    const handleToggleHeart = async () => {
-        if (!currentUser) {
-            alert("Vui lòng đăng nhập để lưu sản phẩm yêu thích!");
-            return;
+  // 3. Hàm xử lý thả tim
+  const handleToggleHeart = async () => {
+    if (!currentUser) {
+      alert("Vui lòng đăng nhập để lưu sản phẩm yêu thích!");
+      return;
+    }
+    if (!currentUser._id) {
+      alert("Không tìm thấy thông tin tài khoản!");
+      return;
+    }
+    try {
+      const res = await fetch(`http://127.0.0.1:5000/api/users/${currentUser._id}/wishlist`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: productIdStr })
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (typeof setCurrentUser === 'function') {
+          setCurrentUser(prev => ({ ...prev, wishlist: data.wishlist }));
         }
-        try {
-            const res = await fetch(`http://127.0.0.1:5000/api/users/${currentUser._id}/wishlist`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ productId: product._id })
-            });
-            const data = await res.json();
-            if (data.success) {
-                setCurrentUser({ ...currentUser, wishlist: data.wishlist });
-            }
-        } catch (error) {
-            console.error("Lỗi thả tim:", error);
-        }
-    };
+      }
+    } catch (error) {
+      console.error("Lỗi thả tim:", error);
+    }
+  };
   // Tự động cuộn lên đầu và tìm đúng sản phẩm
   useEffect(() => {
     window.scrollTo(0, 0);
