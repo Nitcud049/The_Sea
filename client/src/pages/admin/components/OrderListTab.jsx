@@ -147,7 +147,7 @@ const OrderListTab = ({ orders = [], updateOrderStatus, formatPrice, onRefresh }
           </thead>
           <tbody>
             {orders && orders.length > 0 ? (
-              [...orders].reverse().map(o => {
+              [...orders].sort((a, b) => new Date(b.createdAt || b.date || 0) - new Date(a.createdAt || a.date || 0)).map(o => {
                 const statusConfig = getStatusConfig(o.status);
                 const { paidAmount, percent } = getPaymentDetails(o);
 

@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { 
   LayoutDashboard, Package, ShoppingCart, MessageSquare, 
-  Users, Heart, LogOut, Menu, Palette, Plus, Search
+  Users, Heart, LogOut, Menu, Palette, Plus, Search, Trash2, X
 } from 'lucide-react';
 
 import HomepageConfigTab from './components/HomepageConfigTab';
@@ -23,6 +23,7 @@ function AdminPanel({
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
+  const [historyModal, setHistoryModal] = useState({ open: false, user: null, orders: [] });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(8); 
   const [topLikedProducts, setTopLikedProducts] = useState([]);
@@ -304,7 +305,61 @@ function AdminPanel({
                         <td className={styles.td}>{user.email || user.username}</td>
                         <td className={styles.td}>{user.phone || 'Chưa cập nhật'}</td>
                         <td className={styles.td} style={{textAlign: 'right'}}>
-                          <button onClick={() => handleDeleteUser(user._id)} className={`${styles.btnPrimary} ${styles.btnDanger}`} style={{ padding: '8px 15px' }}>Xóa</button>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
+                            {/* Nút xem lịch sử mua hàng */}
+                            <button 
+                              onClick={() => {
+                                const userOrders = (orders || []).filter(o => {
+                                  const orderName = (o.customer?.name || o.username || '').toLowerCase();
+                                  const orderEmail = (o.customer?.email || '').toLowerCase();
+                                  const orderPhone = (o.customer?.phone || '');
+                                  const userName = (user.name || user.username || '').toLowerCase();
+                                  const userEmail = (user.email || user.username || '').toLowerCase();
+                                  const userPhone = (user.phone || '');
+                                  return orderName === userName || orderEmail === userEmail || (userPhone && orderPhone === userPhone);
+                                });
+                                setHistoryModal({ open: true, user, orders: userOrders });
+                              }}
+                              style={{
+                                background: 'none',
+                                border: '1px solid #e0e0e0',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                padding: '7px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#555',
+                                transition: 'all 0.2s ease'
+                              }}
+                              title="Xem lịch sử mua hàng"
+                              onMouseEnter={e => { e.currentTarget.style.borderColor = '#000'; e.currentTarget.style.color = '#000'; e.currentTarget.style.backgroundColor = '#f5f5f5'; }}
+                              onMouseLeave={e => { e.currentTarget.style.borderColor = '#e0e0e0'; e.currentTarget.style.color = '#555'; e.currentTarget.style.backgroundColor = 'transparent'; }}
+                            >
+                              <Search size={16} />
+                            </button>
+                            {/* Nút xóa khách hàng */}
+                            <button 
+                              onClick={() => { if(window.confirm('Xóa tài khoản khách hàng này?')) handleDeleteUser(user._id); }}
+                              style={{
+                                background: 'none',
+                                border: '1px solid #e0e0e0',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                padding: '7px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#999',
+                                transition: 'all 0.2s ease'
+                              }}
+                              title="Xóa khách hàng"
+                              onMouseEnter={e => { e.currentTarget.style.borderColor = '#ff4757'; e.currentTarget.style.color = '#ff4757'; e.currentTarget.style.backgroundColor = '#fff5f5'; }}
+                              onMouseLeave={e => { e.currentTarget.style.borderColor = '#e0e0e0'; e.currentTarget.style.color = '#999'; e.currentTarget.style.backgroundColor = 'transparent'; }}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -315,6 +370,256 @@ function AdminPanel({
               </table>
             </div>
           )}
+
+          {/* SIDEBAR LỊCH SỬ MUA HÀNG - Trượt từ bên phải */}
+          {historyModal.open && (() => {
+            const hUser = historyModal.user;
+            const hOrders = historyModal.orders;
+            const totalSpent = hOrders.filter(o => o.status === 'completed').reduce((sum, o) => sum + (o.total || 0), 0);
+            const closeSidebar = () => setHistoryModal({ open: false, user: null, orders: [] });
+
+            return (
+              <>
+                {/* Inline keyframes cho slide animation */}
+                <style>{`
+                  @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+                  @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
+                `}</style>
+
+                {/* Overlay nền mờ */}
+                <div 
+                  onClick={closeSidebar}
+                  style={{
+                    position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+                    backgroundColor: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(2px)',
+                    zIndex: 9998, animation: 'fadeInOverlay 0.3s ease forwards'
+                  }} 
+                />
+
+                {/* Sidebar Panel */}
+                <div
+                  onClick={e => e.stopPropagation()}
+                  style={{
+                    position: 'fixed', top: 0, right: 0, width: '480px', maxWidth: '90vw',
+                    height: '100vh', backgroundColor: '#fff', zIndex: 9999,
+                    display: 'flex', flexDirection: 'column',
+                    boxShadow: '-8px 0 30px rgba(0,0,0,0.12)',
+                    animation: 'slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+                  }}
+                >
+                  {/* Header */}
+                  <div style={{
+                    padding: '24px 28px', borderBottom: '1px solid #e5e5e5',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0
+                  }}>
+                    <h3 style={{ margin: 0, fontSize: '13px', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700, color: '#000' }}>
+                      Thông Tin Khách Hàng
+                    </h3>
+                    <button 
+                      onClick={closeSidebar}
+                      style={{
+                        background: 'none', border: '1px solid #e0e0e0', borderRadius: '6px',
+                        cursor: 'pointer', padding: '6px', display: 'flex', alignItems: 'center',
+                        justifyContent: 'center', color: '#666', transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = '#000'; e.currentTarget.style.color = '#000'; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = '#e0e0e0'; e.currentTarget.style.color = '#666'; }}
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+
+                  {/* Scrollable Content */}
+                  <div style={{ flex: 1, overflowY: 'auto', padding: '0' }}>
+
+                    {/* ===== PHẦN THÔNG TIN KHÁCH HÀNG ===== */}
+                    <div style={{ padding: '28px', borderBottom: '1px solid #f0f0f0' }}>
+                      {/* Avatar + Tên */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+                        <div style={{
+                          width: '60px', height: '60px', borderRadius: '50%', backgroundColor: '#000',
+                          color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontWeight: 'bold', fontSize: '22px', flexShrink: 0, letterSpacing: '1px'
+                        }}>
+                          {(hUser?.name || hUser?.username || 'U').charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '18px', color: '#000', marginBottom: '2px' }}>
+                            {hUser?.name || hUser?.username}
+                          </div>
+                          <span style={{
+                            fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px',
+                            backgroundColor: '#f5f5f5', padding: '3px 8px', color: '#666', fontWeight: 600
+                          }}>
+                            {hUser?.role || 'Member'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Grid thông tin chi tiết */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <div style={{ padding: '14px', backgroundColor: '#fafafa', border: '1px solid #f0f0f0' }}>
+                          <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', color: '#999', marginBottom: '6px', fontWeight: 600 }}>Email</div>
+                          <div style={{ fontSize: '13px', color: '#333', wordBreak: 'break-all' }}>{hUser?.email || hUser?.username || 'N/A'}</div>
+                        </div>
+                        <div style={{ padding: '14px', backgroundColor: '#fafafa', border: '1px solid #f0f0f0' }}>
+                          <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', color: '#999', marginBottom: '6px', fontWeight: 600 }}>Số Điện Thoại</div>
+                          <div style={{ fontSize: '13px', color: '#333' }}>{hUser?.phone || 'Chưa cập nhật'}</div>
+                        </div>
+                        <div style={{ padding: '14px', backgroundColor: '#fafafa', border: '1px solid #f0f0f0' }}>
+                          <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', color: '#999', marginBottom: '6px', fontWeight: 600 }}>Ngày Tham Gia</div>
+                          <div style={{ fontSize: '13px', color: '#333' }}>{hUser?.createdAt ? new Date(hUser.createdAt).toLocaleDateString('vi-VN') : 'N/A'}</div>
+                        </div>
+                        <div style={{ padding: '14px', backgroundColor: '#fafafa', border: '1px solid #f0f0f0' }}>
+                          <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', color: '#999', marginBottom: '6px', fontWeight: 600 }}>Địa Chỉ</div>
+                          <div style={{ fontSize: '13px', color: '#333' }}>{hUser?.address || 'Chưa cập nhật'}</div>
+                        </div>
+                      </div>
+
+                      {/* Thống kê nhanh */}
+                      <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+                        <div style={{
+                          flex: 1, padding: '16px', border: '1px solid #000', textAlign: 'center'
+                        }}>
+                          <div style={{ fontSize: '22px', fontWeight: 700, color: '#000' }}>{hOrders.length}</div>
+                          <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', color: '#666', marginTop: '4px', fontWeight: 600 }}>Đơn Hàng</div>
+                        </div>
+                        <div style={{
+                          flex: 1, padding: '16px', border: '1px solid #000', textAlign: 'center'
+                        }}>
+                          <div style={{ fontSize: '22px', fontWeight: 700, color: '#000' }}>{hOrders.filter(o => o.status === 'completed').length}</div>
+                          <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', color: '#666', marginTop: '4px', fontWeight: 600 }}>Thành Công</div>
+                        </div>
+                        <div style={{
+                          flex: 1, padding: '16px', border: '1px solid #000', textAlign: 'center'
+                        }}>
+                          <div style={{ fontSize: '15px', fontWeight: 700, color: '#000' }}>{formatPrice(totalSpent)}</div>
+                          <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', color: '#666', marginTop: '4px', fontWeight: 600 }}>Đã Chi</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ===== PHẦN LỊCH SỬ MUA HÀNG ===== */}
+                    <div style={{ padding: '28px' }}>
+                      <h4 style={{
+                        margin: '0 0 20px 0', fontSize: '12px', textTransform: 'uppercase',
+                        letterSpacing: '2px', fontWeight: 700, color: '#000',
+                        paddingBottom: '12px', borderBottom: '2px solid #000'
+                      }}>
+                        Lịch Sử Mua Hàng
+                      </h4>
+
+                      {hOrders.length > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                          {[...hOrders].reverse().map(order => {
+                            const statusMap = {
+                              pending: { label: 'Chờ xử lý', bg: '#fff9e6', color: '#b38600', border: '#ffe699' },
+                              processing: { label: 'Đang xử lý', bg: '#fff9e6', color: '#b38600', border: '#ffe699' },
+                              confirmed: { label: 'Đã xác nhận', bg: '#e6f2ff', color: '#0066cc', border: '#b3d9ff' },
+                              shipping: { label: 'Đang giao', bg: '#f0e6ff', color: '#5900b3', border: '#d9b3ff' },
+                              completed: { label: 'Thành công', bg: '#e6ffe6', color: '#008000', border: '#b3ffb3' },
+                              cancelled: { label: 'Đã hủy', bg: '#ffe6e6', color: '#cc0000', border: '#ffb3b3' },
+                            };
+                            const st = statusMap[order.status] || statusMap.pending;
+
+                            return (
+                              <div key={order._id} style={{ border: '1px solid #eee', padding: '0', transition: 'border-color 0.2s' }}
+                                onMouseEnter={e => e.currentTarget.style.borderColor = '#ccc'}
+                                onMouseLeave={e => e.currentTarget.style.borderColor = '#eee'}
+                              >
+                                {/* Order Header */}
+                                <div style={{
+                                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                  padding: '14px 16px', backgroundColor: '#fafafa', borderBottom: '1px solid #f0f0f0'
+                                }}>
+                                  <div>
+                                    <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '13px', letterSpacing: '1px' }}>
+                                      #{order._id.substring(0, 8)}
+                                    </span>
+                                    <span style={{ fontSize: '12px', color: '#999', marginLeft: '10px' }}>
+                                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString('vi-VN') : ''}
+                                    </span>
+                                  </div>
+                                  <span style={{
+                                    display: 'inline-block', padding: '4px 10px', fontSize: '9px', fontWeight: 700,
+                                    textTransform: 'uppercase', letterSpacing: '0.5px',
+                                    backgroundColor: st.bg, color: st.color, border: `1px solid ${st.border}`
+                                  }}>
+                                    {st.label}
+                                  </span>
+                                </div>
+
+                                {/* Order Items - với hình ảnh sản phẩm */}
+                                <div style={{ padding: '12px 16px' }}>
+                                  {order.items && order.items.length > 0 ? (
+                                    order.items.map((item, i) => (
+                                      <div key={i} style={{
+                                        display: 'flex', alignItems: 'center', gap: '14px',
+                                        padding: '10px 0',
+                                        borderBottom: i < order.items.length - 1 ? '1px solid #f5f5f5' : 'none'
+                                      }}>
+                                        {/* Hình ảnh sản phẩm */}
+                                        <div style={{
+                                          width: '56px', height: '70px', flexShrink: 0,
+                                          backgroundColor: '#f5f5f5', border: '1px solid #eee', overflow: 'hidden'
+                                        }}>
+                                          <img 
+                                            src={item.image || item.img || ''} 
+                                            alt={item.name || 'SP'}
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                            onError={e => { e.target.style.display = 'none'; }}
+                                          />
+                                        </div>
+                                        {/* Thông tin sản phẩm */}
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                          <div style={{ fontSize: '13px', fontWeight: 600, color: '#000', marginBottom: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            {item.name || 'Sản phẩm'}
+                                          </div>
+                                          <div style={{ fontSize: '11px', color: '#999' }}>
+                                            {item.size && <span>Size: {item.size}</span>}
+                                            {item.color && <span style={{ marginLeft: item.size ? '10px' : 0 }}>Màu: {item.color}</span>}
+                                          </div>
+                                          <div style={{ fontSize: '11px', color: '#999', marginTop: '2px' }}>
+                                            SL: {item.quantity || 1}
+                                          </div>
+                                        </div>
+                                        {/* Giá */}
+                                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#000', flexShrink: 0 }}>
+                                          {formatPrice(item.price || 0)}
+                                        </div>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <div style={{ fontSize: '12px', color: '#999', padding: '10px 0' }}>Không có chi tiết sản phẩm</div>
+                                  )}
+                                </div>
+
+                                {/* Order Footer - Tổng tiền */}
+                                <div style={{
+                                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                  padding: '12px 16px', backgroundColor: '#fafafa', borderTop: '1px solid #f0f0f0'
+                                }}>
+                                  <span style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: '#666', fontWeight: 600 }}>Tổng cộng</span>
+                                  <span style={{ fontSize: '15px', fontWeight: 700, color: '#000', letterSpacing: '0.5px' }}>{formatPrice(order.total)}</span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div style={{
+                          textAlign: 'center', padding: '50px 20px', color: '#999',
+                          fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px'
+                        }}>
+                          Khách hàng này chưa có đơn hàng nào.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
 
         </div>
       </main>
