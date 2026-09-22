@@ -1,0 +1,69 @@
+/* =========================================
+   PHẦN 1: CSS CHO TRANG CONTACT PAGE 
+   ========================================= */
+.cp-page { background-color: #f6f5f3; min-height: 100vh; color: #231F20; padding-bottom: 100px; }
+.cp-top-nav { background-color: #ffffff; border-bottom: 1px solid #e5e5e5; height: 65px; display: flex; justify-content: space-between; align-items: stretch; padding: 0 0 0 50px; }
+.cp-nav-title { display: flex; align-items: center; font-size: 13px; font-weight: 400; text-transform: uppercase; letter-spacing: 0.04em; color: #231F20; }
+.cp-nav-links { display: flex; height: 100%; }
+.cp-nav-link-active { display: flex; align-items: center; padding: 0 35px; font-size: 12px; font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; color: #231F20; text-decoration: none; border-bottom: 2px solid #231F20; background-color: #ffffff; }
+.cp-nav-link { display: flex; align-items: center; padding: 0 35px; font-size: 12px; font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; color: #5C5552; text-decoration: none; border-left: 1px solid #f0f0f0; }
+.cp-container { max-width: 1200px; margin: 0 auto; padding: 50px 20px 0 20px; }
+.cp-header-title { font-size: 28px; font-weight: 400; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 16px; color: #231F20; }
+.cp-header-desc { font-size: 14px; font-weight: 400; letter-spacing: 0.02em; color: #4A4542; margin-bottom: 40px; line-height: 1.6; }
+.cp-grid-cards { display: grid; grid-template-columns: repeat(3, 1fr); background-color: #ffffff; border: 1px solid #eaeaea; margin-bottom: 40px; }
+.cp-card-col { padding: 40px 30px; border-right: 1px solid #eaeaea; display: flex; flex-direction: column; }
+.cp-card-col-last { padding: 40px 30px; display: flex; flex-direction: column; }
+.cp-card-title { font-size: 13px; font-weight: 400; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 12px; color: #231F20; }
+.cp-card-desc { font-size: 13px; font-weight: 400; letter-spacing: 0.02em; color: #4A4542; line-height: 1.6; flex-grow: 1; min-height: 38px; }
+.cp-btn-wrapper { display: flex; flex-direction: column; gap: 12px; margin-top: 30px; }
+.cp-pill-btn { display: flex; align-items: center; justify-content: center; width: 100%; padding: 12px 20px; border: 1px solid #231F20; border-radius: 50px; background-color: #ffffff; color: #231F20; font-size: 13px; font-weight: 400; letter-spacing: 0.02em; cursor: pointer; box-sizing: border-box; text-decoration: none; transition: background-color 0.3s; }
+.cp-pill-btn:hover { background-color: #f5f5f5; }
+.icon-style { margin-right: 8px; display: flex; align-items: center; }
+.cp-faq-section { background-color: #ffffff; padding: 40px; border: 1px solid #eaeaea; }
+.cp-faq-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+.cp-faq-title { font-size: 22px; font-weight: 400; text-transform: uppercase; letter-spacing: 0.04em; color: #231F20; }
+.cp-search-wrapper { position: relative; width: 360px; }
+.cp-search-input { width: 100%; padding: 12px 15px 12px 42px; background-color: #f5f5f5; border: none; border-radius: 4px; font-size: 13px; font-weight: 400; letter-spacing: 0.02em; outline: none; box-sizing: border-box; color: #231F20; }
+.cp-search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #777; display: flex; align-items: center; }
+.cp-faq-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px 40px; margin-bottom: 40px; }
+.cp-faq-link { font-size: 13px; font-weight: 400; letter-spacing: 0.02em; color: #231F20; text-decoration: none; line-height: 1.6; display: block; }
+.cp-faq-link:hover { text-decoration: underline; }
+.cp-explore-btn { display: block; width: 100%; padding: 14px 0; border: 1px solid #231F20; border-radius: 50px; background-color: #ffffff; color: #231F20; font-size: 13px; font-weight: 400; letter-spacing: 0.02em; text-align: center; cursor: pointer; transition: background-color 0.3s; }
+.cp-explore-btn:hover { background-color: #f5f5f5; }
+
+
+/* =========================================
+   PHẦN 2: CSS CHO TRANG CONTACT MAIL 
+   ========================================= */
+.contact-page-container { font-family: inherit; color: #1a1a1a; background-color: #f9f9f9; min-height: 100vh; position: relative; }
+.help-nav { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e5e5; background-color: #ffffff; padding: 0 40px; height: 60px; font-size: 13px; letter-spacing: 0.5px; }
+.help-nav-left { display: flex; align-items: center; gap: 15px; }
+.back-icon { font-size: 16px; cursor: pointer; color: #666; }
+.nav-title { text-transform: uppercase; }
+.help-nav-right { display: flex; height: 100%; }
+.nav-item { display: flex; align-items: center; padding: 0 20px; text-decoration: none; color: #666; text-transform: uppercase; font-size: 11px; border-left: 1px solid #e5e5e5; }
+.nav-item:last-child { border-right: 1px solid #e5e5e5; }
+.nav-item.active { color: #1a1a1a; border-bottom: 2px solid #1a1a1a; font-weight: 500; }
+.contact-main { max-width: 700px; margin: 60px auto; padding: 0 20px; }
+.contact-heading { font-size: 28px; font-weight: 400; margin-bottom: 30px; }
+.contact-notice { background-color: #ffffff; padding: 20px; font-size: 13px; line-height: 1.6; color: #333; margin-bottom: 40px; }
+.form-container { background-color: transparent; }
+.required-note { text-align: right; font-size: 12px; color: #666; margin-bottom: 20px; }
+.contact-form { display: flex; flex-direction: column; gap: 25px; }
+.form-group { display: flex; flex-direction: column; }
+.form-group label { font-size: 12px; margin-bottom: 8px; color: #1a1a1a; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px 15px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; font-family: inherit; outline: none; background-color: #ffffff; transition: border-color 0.3s; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #1a1a1a; }
+.phone-group { gap: 10px; }
+.phone-label { text-transform: uppercase; font-size: 11px !important; color: #666 !important; margin-top: 10px; }
+.phone-input-wrapper { display: flex; gap: 15px; }
+.country-code { width: 100px !important; }
+.phone-number { flex: 1; }
+.char-limit { font-size: 12px; color: #666; margin-top: 10px; display: flex; align-items: center; gap: 5px; background-color: #f5f5f5; padding: 15px; }
+.info-icon { display: inline-flex; justify-content: center; align-items: center; width: 16px; height: 16px; border: 1px solid #666; border-radius: 50%; font-size: 10px; }
+.submit-container { display: flex; justify-content: flex-end; margin-top: 20px; }
+.btn-submit { background-color: #000; color: #fff; border: none; padding: 15px 40px; border-radius: 25px; font-size: 13px; cursor: pointer; transition: background-color 0.3s; }
+.btn-submit:hover { background-color: #333; }
+.floating-contact-btn { position: fixed; bottom: 30px; right: 30px; background-color: #ffffff; border: 1px solid #ccc; border-radius: 30px; padding: 12px 20px; display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+.floating-contact-btn:hover { border-color: #1a1a1a; transform: translateY(-2px); }
+.floating-contact-btn .logo-icon { font-family: 'Playfair Display', serif; font-weight: bold; }
