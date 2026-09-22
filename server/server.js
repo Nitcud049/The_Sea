@@ -13,11 +13,13 @@ const userRoutes = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
+const contactRoutes = require('./routes/contactRoutes');
 // 3. GẮN (MOUNT) ROUTES VÀO URL
 app.use('/api', userRoutes); 
 app.use('/api/products', productRoutes); 
 app.use('/api/orders', orderRoutes);
 app.use(reviewRoutes);
+app.use(contactRoutes); // Gắn route liên hệ
 // ==========================================
 // 4. API: CẤU HÌNH (SETTINGS) & ADMIN THỐNG KÊ
 // (Các API nhỏ gọn giữ lại đây để tránh phải tạo thêm file)
