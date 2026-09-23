@@ -8,20 +8,57 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Import dịch vụ gửi email
+const { sendAppointmentEmail } = require('./services/emailService');
+
 // 2. IMPORT CÁC ROUTES ĐÃ TÁCH
 const userRoutes = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const contactRoutes = require('./routes/contactRoutes');
+
 // 3. GẮN (MOUNT) ROUTES VÀO URL
 app.use('/api', userRoutes); 
 app.use('/api/products', productRoutes); 
 app.use('/api/orders', orderRoutes);
 app.use(reviewRoutes);
 app.use(contactRoutes); // Gắn route liên hệ
+
 // ==========================================
-// 4. API: CẤU HÌNH (SETTINGS) & ADMIN THỐNG KÊ
+// 4. API: ĐẶT LỊCH HẸN VÀ GỬI EMAIL THÔNG BÁO
+// ==========================================
+app.post('/api/appointments', async (req, res) => {
+    try {
+        const appointmentData = req.body;
+
+        // Kiểm tra thông tin bắt buộc cơ bản
+        if (!appointmentData.email || !appointmentData.firstName || !appointmentData.lastName) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Vui lòng điền đầy đủ các thông tin bắt buộc!" 
+            });
+        }
+
+        // Gọi hàm gửi email đến vietnam.contact.thesea@gmail.com
+        await sendAppointmentEmail(appointmentData);
+
+        res.status(200).json({ 
+            success: true, 
+            message: "Đặt lịch hẹn thành công và đã gửi email thông báo!" 
+        });
+    } catch (error) {
+        console.error("Lỗi khi gửi email đặt lịch hẹn:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Gửi email thất bại", 
+            error: error.message 
+        });
+    }
+});
+
+// ==========================================
+// 5. API: CẤU HÌNH (SETTINGS) & ADMIN THỐNG KÊ
 // (Các API nhỏ gọn giữ lại đây để tránh phải tạo thêm file)
 // ==========================================
 const Settings = require('./models/Settings');
@@ -68,7 +105,7 @@ app.get('/api/admin/generate-fake-likes', async (req, res) => {
 });
 
 // ==========================================
-// 5. KẾT NỐI DATABASE & CHẠY SERVER
+// 6. KẾT NỐI DATABASE & CHẠY SERVER
 // ==========================================
 const connectDB = require('./config/db');
 connectDB();
