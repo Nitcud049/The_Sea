@@ -37,8 +37,8 @@ const Footer = () => {
                                 You can <Link to="/contact" style={{ color: "#111", textDecoration: "underline" }}>call</Link> or <Link to="/contact-us" style={{ color: "#111", textDecoration: "underline" }}>email us</Link>
                             </li>
                             <li><Link to="/contact" style={{ color: "inherit", textDecoration: "none" }}>FAQ's</Link></li>
-                            <li><Link to="/homepage" style={{ color: "inherit", textDecoration: "none" }}>Product Care</Link></li>
-                            <li><Link to="/homepage" style={{ color: "inherit", textDecoration: "none" }}>Stores</Link></li>
+                            <li><Link to="/contact" style={{ color: "inherit", textDecoration: "none" }}>Product Care</Link></li>
+                            <li><Link to="/contact" style={{ color: "inherit", textDecoration: "none" }}>Stores</Link></li>
                         </ul>
                     </div>
 

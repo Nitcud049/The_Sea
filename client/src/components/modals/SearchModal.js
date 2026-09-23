@@ -128,13 +128,10 @@ const SearchModal = ({ showSearchModal, setShowSearchModal, products, setSelecte
                                 <span style={{ fontSize: "14px", fontWeight: activeTab === 'products' ? "600" : "400", borderBottom: activeTab === 'products' ? "2px solid #1a1a1a" : "none", paddingBottom: "15px", cursor: "pointer" }} onClick={() => setActiveTab('products')}>
                                     Sản phẩm ({searchResults.length})
                                 </span>
-                                <span style={{ fontSize: "14px", color: "#666", cursor: "pointer" }}>Tìm cửa hàng</span>
-                                <span style={{ fontSize: "14px", color: "#666", cursor: "pointer" }}>Bài viết (0)</span>
+                               
                             </div>
 
-                            <button style={{ background: "none", border: "1px solid #eaeaea", padding: "8px 18px", borderRadius: "20px", fontSize: "13px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }} className="w3-hover-light-grey">
-                                Bộ lọc <i className="fa fa-sliders"></i>
-                            </button>
+                            
                         </div>
 
                         {/* Lưới sản phẩm kết quả */}

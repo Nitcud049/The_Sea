@@ -2,11 +2,95 @@
    PHẦN 1: CSS CHO TRANG CONTACT PAGE 
    ========================================= */
 .cp-page { background-color: #f6f5f3; min-height: 100vh; color: #231F20; padding-bottom: 100px; }
-.cp-top-nav { background-color: #ffffff; border-bottom: 1px solid #e5e5e5; height: 65px; display: flex; justify-content: space-between; align-items: stretch; padding: 0 0 0 50px; }
-.cp-nav-title { display: flex; align-items: center; font-size: 13px; font-weight: 400; text-transform: uppercase; letter-spacing: 0.04em; color: #231F20; }
-.cp-nav-links { display: flex; height: 100%; }
-.cp-nav-link-active { display: flex; align-items: center; padding: 0 35px; font-size: 12px; font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; color: #231F20; text-decoration: none; border-bottom: 2px solid #231F20; background-color: #ffffff; }
-.cp-nav-link { display: flex; align-items: center; padding: 0 35px; font-size: 12px; font-weight: 400; letter-spacing: 0.04em; text-transform: uppercase; color: #5C5552; text-decoration: none; border-left: 1px solid #f0f0f0; }
+
+/* Thanh khung trên được chỉnh kích thước và viền chuẩn xác theo ảnh */
+.cp-top-nav { 
+  background-color: #ffffff; 
+  border-top: 1px solid #e5e5e5;
+  border-bottom: 1px solid #e5e5e5; 
+  height: 65px; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: stretch; /* Đảm bảo các tab cao bằng khung */
+  padding: 0; 
+  box-sizing: border-box;
+}
+
+/* Chữ CẦN TRỢ GIÚP bên trái */
+.cp-nav-title { 
+  display: flex; 
+  align-items: center; 
+  font-size: 14px; 
+  font-weight: 400; 
+  text-transform: uppercase; 
+  letter-spacing: 0.05em; 
+  color: #231F20; 
+  padding-left: 50px;
+}
+
+.cp-nav-links { 
+  display: flex; 
+  height: 100%; 
+  align-items: stretch;
+}
+
+/* Tab thường (chưa chọn) */
+.cp-nav-link { 
+  position: relative;
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  padding: 0 45px; 
+  font-size: 12px; 
+  font-weight: 400; 
+  letter-spacing: 0.05em; 
+  text-transform: uppercase; 
+  color: #5C5552; 
+  text-decoration: none; 
+  background-color: #ffffff;
+  border-left: 1px solid #e5e5e5; 
+  box-sizing: border-box;
+  transition: color 0.25s ease, background-color 0.25s ease;
+  cursor: pointer;
+}
+
+.cp-nav-link:hover {
+  background-color: #fafafa;
+  color: #000000;
+}
+
+/* Tab đang được chọn (Active) */
+.cp-nav-link-active { 
+  position: relative;
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  padding: 0 45px; 
+  font-size: 12px; 
+  font-weight: 400; 
+  letter-spacing: 0.05em; 
+  text-transform: uppercase; 
+  color: #000000; 
+  text-decoration: none; 
+  background-color: #ffffff; 
+  border-left: 1px solid #e5e5e5; 
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: color 0.25s ease;
+}
+
+/* Đường gạch đen dưới Tab đang chọn có hiệu ứng trượt */
+.cp-nav-link-active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; /* Đè chính xác lên viền dưới của container */
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #000000;
+  animation: slideUnderline 0.25s ease-out forwards;
+}
+
 .cp-container { max-width: 1200px; margin: 0 auto; padding: 50px 20px 0 20px; }
 .cp-header-title { font-size: 28px; font-weight: 400; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 16px; color: #231F20; }
 .cp-header-desc { font-size: 14px; font-weight: 400; letter-spacing: 0.02em; color: #4A4542; margin-bottom: 40px; line-height: 1.6; }
@@ -36,14 +120,58 @@
    PHẦN 2: CSS CHO TRANG CONTACT MAIL 
    ========================================= */
 .contact-page-container { font-family: inherit; color: #1a1a1a; background-color: #f9f9f9; min-height: 100vh; position: relative; }
-.help-nav { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e5e5; background-color: #ffffff; padding: 0 40px; height: 60px; font-size: 13px; letter-spacing: 0.5px; }
-.help-nav-left { display: flex; align-items: center; gap: 15px; }
+
+/* Áp dụng cấu trúc khung trên tương tự cho trang Contact Mail */
+.help-nav { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  border-top: 1px solid #e5e5e5;
+  border-bottom: 1px solid #e5e5e5; 
+  background-color: #ffffff; 
+  padding: 0; 
+  height: 65px; 
+  font-size: 13px; 
+  letter-spacing: 0.5px; 
+}
+
+.help-nav-left { display: flex; align-items: center; gap: 15px; padding-left: 40px; }
 .back-icon { font-size: 16px; cursor: pointer; color: #666; }
-.nav-title { text-transform: uppercase; }
-.help-nav-right { display: flex; height: 100%; }
-.nav-item { display: flex; align-items: center; padding: 0 20px; text-decoration: none; color: #666; text-transform: uppercase; font-size: 11px; border-left: 1px solid #e5e5e5; }
-.nav-item:last-child { border-right: 1px solid #e5e5e5; }
-.nav-item.active { color: #1a1a1a; border-bottom: 2px solid #1a1a1a; font-weight: 500; }
+.nav-title { text-transform: uppercase; font-size: 14px; color: #231F20; }
+.help-nav-right { display: flex; height: 100%; align-items: stretch; }
+
+.nav-item { 
+  position: relative;
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  padding: 0 45px; 
+  text-decoration: none; 
+  color: #5C5552; 
+  text-transform: uppercase; 
+  font-size: 12px; 
+  border-left: 1px solid #e5e5e5; 
+  transition: color 0.25s ease, background-color 0.25s ease;
+}
+
+.nav-item.active { 
+  color: #000000; 
+  background-color: #ffffff;
+}
+
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #000000;
+  animation: slideUnderline 0.25s ease-out forwards;
+}
+
+.nav-item:hover { color: #000000; background-color: #fafafa; }
+
 .contact-main { max-width: 700px; margin: 60px auto; padding: 0 20px; }
 .contact-heading { font-size: 28px; font-weight: 400; margin-bottom: 30px; }
 .contact-notice { background-color: #ffffff; padding: 20px; font-size: 13px; line-height: 1.6; color: #333; margin-bottom: 40px; }
@@ -67,3 +195,200 @@
 .floating-contact-btn { position: fixed; bottom: 30px; right: 30px; background-color: #ffffff; border: 1px solid #ccc; border-radius: 30px; padding: 12px 20px; display: flex; align-items: center; gap: 10px; font-size: 13px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: all 0.3s ease; }
 .floating-contact-btn:hover { border-color: #1a1a1a; transform: translateY(-2px); }
 .floating-contact-btn .logo-icon { font-family: 'Playfair Display', serif; font-weight: bold; }
+
+/* ================= STYLES CHO TAB CÂU HỎI THƯỜNG GẶP ================= */
+.faq-page-content { margin-top: 10px; }
+.faq-header-block { margin-bottom: 40px; }
+.faq-main-search { position: relative; max-width: 100%; margin-top: 20px; }
+.faq-search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #666; }
+.faq-search-input { width: 100%; padding: 14px 14px 14px 42px; border: 1px solid #e0e0e0; background-color: #fbfbfb; font-size: 13px; outline: none; transition: border 0.2s ease; }
+.faq-search-input:focus { border-color: #000; background-color: #fff; }
+.faq-body-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 60px; }
+.faq-section-heading { font-size: 12px; font-weight: 600; letter-spacing: 1.5px; margin-bottom: 24px; text-transform: uppercase; }
+.faq-topics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 40px; }
+.faq-topic-card { border: 1px solid #eaeaea; padding: 24px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; cursor: pointer; transition: all 0.2s ease; background-color: #ffffff; }
+.faq-topic-card:hover { border-color: #000; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+.faq-topic-card span { font-size: 11px; color: #333; text-align: center; font-weight: 500; }
+.faq-contact-box { border-top: 1px solid #eaeaea; padding-top: 30px; }
+.faq-contact-box-title { font-size: 12px; font-weight: 600; letter-spacing: 1px; margin-bottom: 8px; }
+.faq-contact-box-desc { font-size: 12px; color: #666; margin-bottom: 16px; }
+.faq-contact-box-btn { background: none; border: 1px solid #000; padding: 12px 20px; font-size: 11px; letter-spacing: 1px; cursor: pointer; transition: all 0.2s ease; }
+.faq-contact-box-btn:hover { background-color: #000; color: #fff; }
+.faq-questions-list { list-style: none; padding: 0; margin: 0; }
+.faq-questions-list li { margin-bottom: 16px; }
+.faq-questions-list a { font-size: 13px; color: #000; text-decoration: underline; line-height: 1.6; transition: opacity 0.2s; }
+.faq-questions-list a:hover { opacity: 0.6; }
+
+/* =========================================
+   HIỆU ỨNG ANIMATION CHUNG
+   ========================================= */
+/* Keyframes hiệu ứng đường gạch chân trượt mượt */
+@keyframes slideUnderline {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Hiệu ứng chuyển màn hình mượt khi đổi tab (bọc class này vào nội dung bên dưới) */
+.tab-content-anim {
+  animation: tabFadeIn 0.35s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes tabFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive cho thiết bị di động */
+@media (max-width: 768px) {
+  .cp-grid-cards, .faq-body-grid, .cp-faq-grid, .faq-topics-grid { grid-template-columns: 1fr; }
+  .cp-top-nav, .help-nav { flex-direction: column; height: auto; padding: 10px 0; }
+  .cp-nav-title, .help-nav-left { padding-left: 20px; padding-bottom: 10px; }
+  .cp-nav-links, .help-nav-right { width: 100%; flex-wrap: wrap; }
+  .cp-nav-link, .cp-nav-link-active, .nav-item { padding: 10px 20px; border-left: none; width: 100%; border-top: 1px solid #e5e5e5; }
+}
+/* =========================================
+   PHẦN 3: CSS CHO TAB DỊCH VỤ CHĂM SÓC 
+   ========================================= */
+
+/* Bố cục chia 2 cột chuẩn tỉ lệ ảnh */
+.care-page-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 30px;
+  max-width: 1200px;
+  margin: 40px auto 0 auto;
+  padding: 0 20px;
+}
+
+.care-box {
+  background-color: #ffffff;
+  border: 1px solid #eaeaea;
+  padding: 40px;
+  margin-bottom: 30px;
+}
+
+.care-box-title {
+  font-size: 16px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #231F20;
+  margin-bottom: 24px;
+}
+
+.care-box-desc {
+  font-size: 13px;
+  color: #5C5552;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+/* Lưới hiển thị các danh mục chăm sóc sản phẩm (3 cột) */
+.care-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid #eaeaea;
+  border-left: 1px solid #eaeaea;
+}
+
+.care-grid-item {
+  border-right: 1px solid #eaeaea;
+  border-bottom: 1px solid #eaeaea;
+  padding: 35px 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  cursor: pointer;
+  background-color: #ffffff;
+  transition: background-color 0.25s ease;
+}
+
+.care-grid-item:hover:not(.empty) {
+  background-color: #fafafa;
+}
+
+.care-grid-item.empty {
+  cursor: default;
+}
+
+.care-icon {
+  color: #231F20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.care-grid-item span {
+  font-size: 12px;
+  color: #231F20;
+  text-align: center;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+/* Nút Đặt lịch hẹn dạng viền tròn (Pill Button) chứa Link */
+.care-btn-wrapper {
+  display: inline-block;
+}
+
+.care-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 32px;
+  border: 1px solid #231F20;
+  border-radius: 50px;
+  color: #231F20;
+  font-size: 13px;
+  text-decoration: none;
+  background-color: #ffffff;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.care-pill-btn:hover {
+  background-color: #231F20;
+  color: #ffffff;
+}
+
+/* Cột phải: Khối Liên hệ với chúng tôi */
+.care-right-col .care-contact-box {
+  position: sticky;
+  top: 20px;
+}
+
+.care-black-btn {
+  width: 100%;
+  background-color: #000000;
+  color: #ffffff;
+  border: none;
+  padding: 16px 20px;
+  border-radius: 50px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.care-black-btn:hover {
+  background-color: #333333;
+}
+
+/* Responsive cho thiết bị di động */
+@media (max-width: 900px) {
+  .care-page-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .care-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
+  .care-grid {
+    grid-template-columns: 1fr;
+  }
+}
