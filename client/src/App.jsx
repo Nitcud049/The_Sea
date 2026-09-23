@@ -13,6 +13,7 @@ import ProductCard from './components/ProductCard';
 import Home from './pages/Home';
 import AdminPanel from './pages/admin/AdminPanel';
 import Contact from './pages/Contact'; // Đã import trang Contact
+import StoreAppointment from './pages/StoreAppointment/StoreAppointment';
 
 import AuthModal from './components/modals/AuthModal';
 import CartModal from './components/modals/CartModal';
@@ -45,6 +46,7 @@ import UserReviewsPage from './pages/UserReviewsPage';
 import WishlistPage from './pages/WishlistPage';
 import ContactPage from './pages/contact/ContactPage';
 import ContactMail from './pages/contact/ContactMail';
+import ServicesPage from './pages/ServicesPage';
 // ==========================================
 // COMPONENT: CUỘN LÊN ĐẦU TRANG KHI ĐỔI ROUTE
 // ==========================================
@@ -275,13 +277,19 @@ function AppContent() {
           <Route path="/homepage" element={<Home products={products} setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} homepageConfig={homepageConfig} currentUser={currentUser} setCurrentUser={setCurrentUser} />} />
           <Route path="/product/:id" element={<ProductDetailPage products={products} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser} fetchProducts={fetchProducts} />} />
           <Route path="/my-reviews" element={<UserReviewsPage products={products} currentUser={currentUser} fetchProducts={fetchProducts} setCurrentUser={setCurrentUser}/>} />
+          <Route path="/services" element={<ServicesPage />} />
+          <Route path="/book-appointment" element={<StoreAppointment currentUser={currentUser} setCurrentUser={setCurrentUser} />} /> 
+          
+          
+          
           <Route path="/checkout/success" element={<CheckoutSuccessPage currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
-          <Route path="/:gender/:categoryId" element={<CategoryPage products={products} setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
+          
           
           <Route path="/contact" element={<Contact currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
           <Route path="/contact-us" element={<ContactPage currentUser={currentUser} setCurrentUser={setCurrentUser}/>} /> 
           <Route path="/contact-mail" element={<ContactMail currentUser={currentUser} setCurrentUser={setCurrentUser}/>} /> 
           <Route path="/travel" element={<TravelPage products={products} setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
+          
 
           <Route path="/men/accessories" element={<MenAccessoriesPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
           <Route path="/men/clothing" element={<MenClothingPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
@@ -298,6 +306,7 @@ function AppContent() {
           <Route path="/:gender/:categoryId" element={<CategoryPage products={products} setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
           <Route path="/women/new-arrivals" element={<WomenNewArrivalsPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
           <Route path="/women/shoes" element={<WomenShoesPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
+          <Route path="/:gender/:categoryId" element={<CategoryPage products={products} setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
 
           <Route path="/admin" element={
              isAdminMode ? (

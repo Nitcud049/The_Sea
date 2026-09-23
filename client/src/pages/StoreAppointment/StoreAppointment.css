@@ -1,0 +1,207 @@
+/* StoreAppointment.css */
+.appointment-page {
+  background-color: #f6f5f3;
+  min-height: 100vh;
+  padding: 60px 20px;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+.appointment-title {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 400;
+  margin-bottom: 40px;
+}
+
+.appointment-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Các bước (Step cards) */
+.step-card {
+  background-color: #fff;
+  padding: 30px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+}
+
+.step-card.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 20px;
+}
+
+.step-number {
+  background-color: #19110b;
+  color: #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  margin-right: 15px;
+}
+
+.step-card.disabled .step-number {
+  background-color: #fff;
+  color: #19110b;
+  border: 1px solid #19110b;
+}
+
+/* Form Inputs */
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-label {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 8px;
+  color: #19110b;
+  font-weight: 500;
+}
+
+.text-input, .select-input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #e5e5e5;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+  background-color: #fff;
+}
+
+.text-input:focus, .select-input:focus {
+  border-color: #19110b;
+}
+
+.location-btn {
+  background: none;
+  border: none;
+  color: #19110b;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+/* Khung chọn ngày giả lập */
+.date-selector-box {
+  border: 1px solid #e5e5e5;
+  padding: 12px 15px;
+  cursor: pointer;
+  color: #666;
+  margin-top: 10px;
+}
+
+/* Hiệu ứng trượt xuống cho Bước 2 */
+.step-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out;
+  opacity: 0;
+}
+
+.step-content.active {
+  max-height: 1000px;
+  opacity: 1;
+}
+
+/* Lưới form Bước 2 */
+.form-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+.form-col {
+  flex: 1;
+}
+.phone-input-group {
+  display: flex;
+  gap: 10px;
+}
+.phone-code {
+  width: 100px;
+}
+.phone-number {
+  flex: 1;
+}
+
+/* Modal trượt từ phải (Drawer Chọn Ngày) */
+.drawer-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 1000;
+  visibility: hidden;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+.drawer-overlay.open {
+  visibility: visible;
+  opacity: 1;
+}
+
+.date-drawer {
+  position: fixed;
+  top: 0;
+  right: -450px;
+  width: 400px;
+  height: 100vh;
+  background-color: #fff;
+  z-index: 1001;
+  transition: right 0.4s ease-in-out;
+  display: flex;
+  flex-direction: column;
+}
+.date-drawer.open {
+  right: 0;
+}
+
+.drawer-header {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+.drawer-body {
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+  text-align: center;
+}
+
+.confirm-btn {
+  background-color: #b4b4b4;
+  color: #fff;
+  border: none;
+  padding: 15px;
+  width: 90%;
+  margin: 20px auto;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 15px;
+}
+.confirm-btn.active {
+  background-color: #19110b;
+}
