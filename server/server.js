@@ -17,6 +17,8 @@ const productRoutes = require('./routes/productRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const contactRoutes = require('./routes/contactRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
+const { getRatesSnapshot, SUPPORTED_CURRENCIES, MONEY_VERSION } = require('./config/currency');
 
 // 3. GẮN (MOUNT) ROUTES VÀO URL
 app.use('/api', userRoutes); 
@@ -24,6 +26,11 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use(reviewRoutes);
 app.use(contactRoutes); // Gắn route liên hệ
+app.use('/api/admin/dashboard', dashboardRoutes);
+
+app.get('/api/currency', (req, res) => {
+    res.json({ success: true, currencies: SUPPORTED_CURRENCIES, rates: getRatesSnapshot(), moneyVersion: MONEY_VERSION });
+});
 
 // ==========================================
 // 4. API: ĐẶT LỊCH HẸN VÀ GỬI EMAIL THÔNG BÁO

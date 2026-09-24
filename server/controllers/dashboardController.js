@@ -8,13 +8,16 @@ const getDashboardStats = async (req, res) => {
             status: { $in: ['confirmed', 'shipping', 'completed'] } 
         });
         
-        let totalRevenue = 0; // Tổng tiền thu về
+        let totalRevenue = 0; // Giá trị đơn theo trạng thái doanh thu
+        let totalReceived = 0; // Tiền thực tế đã xác nhận nhận
         let totalProductsSold = 0; // Tổng số lượng sản phẩm bán ra
         const dailySales = {}; // Lưu trữ dữ liệu nhóm theo ngày
 
         validOrders.forEach(order => {
             // 1. Cộng dồn tổng tiền thu về
             totalRevenue += (order.total || 0);
+            const amountPaid = Number(order.paymentInfo?.amountPaid);
+            if (Number.isFinite(amountPaid) && amountPaid >= 0) totalReceived += amountPaid;
 
             // 2. Tính số sản phẩm bán ra 
             // (Giả sử mảng chứa sản phẩm trong Order của bạn tên là 'cart', 'items' hoặc 'products')
@@ -54,6 +57,7 @@ const getDashboardStats = async (req, res) => {
             success: true,
             overview: {
                 totalRevenue,         // Tổng tiền thu về toàn thời gian
+                totalReceived,        // Tiền thực tế đã xác nhận nhận
                 totalOrders: validOrders.length, // Tổng số đơn thành công
                 totalProductsSold,    // Tổng số lượng sản phẩm đã bán ra
                 totalProductsInStock  // Tổng số mẫu mã trong kho
@@ -66,5 +70,26 @@ const getDashboardStats = async (req, res) => {
     }
 };
 
-// Lấy danh sách sản phẩm được yêu thích nhất...
-// (Giữ nguyên phần getTopLikedProducts như cũ)
+/// Lấy 10 sản phẩm có lượt yêu thích cao nhất.
+const getTopLikedProducts = async (req, res) => {
+    try {
+        const products = await Product.find()
+            .sort({ likesCount: -1 })
+            .limit(10);
+
+        return res.status(200).json(products);
+    } catch (error) {
+        console.error('Lỗi lấy sản phẩm được yêu thích:', error);
+
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+// Xuất đầy đủ hai hàm mà dashboardRoutes.js đang sử dụng.
+module.exports = {
+    getDashboardStats,
+    getTopLikedProducts
+};

@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Otp = require('../models/Otp');
 const { sendOtpEmail } = require('../services/emailService');
+const jwt = require('jsonwebtoken'); 
 
 const sendOtpGoogle = async (req, res) => {
     try {
@@ -35,7 +36,15 @@ const verifyGoogle = async (req, res) => {
             return res.status(400).json({ success: false, message: "Số điện thoại không khớp!" });
         }
         await Otp.deleteMany({ email: cleanEmail });
-        res.status(200).json({ success: true, message: "Đăng nhập thành công!", user });
+
+        // Cấp Token cho đăng nhập Google
+        const token = jwt.sign(
+            { id: user._id, username: user.username },
+            process.env.JWT_SECRET || 'THE_SEA_SECRET_KEY_2024', 
+            { expiresIn: '1d' }
+        );
+
+        res.status(200).json({ success: true, message: "Đăng nhập thành công!", token, user });
     } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 };
 
@@ -103,10 +112,30 @@ const resetPassword = async (req, res) => {
 
 const login = async (req, res) => {
     try {
-        const user = await User.findOne({ username: req.body.username, password: req.body.password });
-        if (user) res.status(200).json({ success: true, user });
-        else res.status(400).json({ success: false, message: "Sai tài khoản hoặc mật khẩu" });
-    } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+        const user = await User.findOne({ username: req.body.username });
+        if (!user || user.password !== req.body.password) {
+            return res.status(400).json({ success: false, message: "Sai tài khoản hoặc mật khẩu" });
+        }
+
+        // Loại bỏ password trước khi gửi về Frontend
+        const { password, ...userWithoutPassword } = user._doc;
+
+        // Tạo JWT Token
+        const token = jwt.sign(
+            { id: user._id, username: user.username },
+            process.env.JWT_SECRET || 'THE_SEA_SECRET_KEY_2024', 
+            { expiresIn: '1d' }
+        );
+
+        res.status(200).json({ 
+            success: true, 
+            message: "Đăng nhập thành công!", 
+            token, // Gửi token về Frontend
+            user: userWithoutPassword 
+        });
+    } catch (err) { 
+        res.status(500).json({ success: false, message: err.message }); 
+    }
 };
 
 module.exports = { sendOtpGoogle, verifyGoogle, sendOtpRegister, register, sendOtpForgot, resetPassword, login };

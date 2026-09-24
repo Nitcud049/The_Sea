@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const { formatCurrency, normalizeCurrency } = require('../config/currency');
 
 // 1. CẤU HÌNH NODE MAILER GỬI MAIL
 const transporter = nodemailer.createTransport({
@@ -27,47 +28,36 @@ const getImageUrl = (imagePath) => {
 };
 
 // 3. HÀM FORMAT TIỀN TỆ (USD)
-const formatPrice = (amount) => {
-    return new Intl.NumberFormat('en-US', { 
-        style: 'currency', 
-        currency: 'USD' 
-    }).format(amount || 0);
+const formatOrderPrice = (amountUSD, order) => {
+    const currency = normalizeCurrency(order.displayCurrency);
+    const rates = order.exchangeRates;
+    if (!currency || !rates || !Number.isFinite(Number(rates[currency]))) return null;
+    return formatCurrency(Number(amountUSD) * Number(rates[currency]), currency);
 };
 
 // 4. HÀM TÍNH TOÁN TIỀN CỌC & TIỀN CÒN LẠI
 const calculatePaymentDetails = (order) => {
-    let paidAmount = order.total;
-
-    if (order.paymentInfo) {
-        if (typeof order.paymentInfo.amountPaid === 'number' && order.paymentInfo.amountPaid > 0) {
-            paidAmount = order.paymentInfo.amountPaid;
-        } else if (String(order.paymentInfo.method).toLowerCase() === 'deposit') {
-            paidAmount = (order.total * 25) / 100;
-        }
-    } else if (typeof order.paidAmount === 'number' && order.paidAmount > 0 && order.paidAmount <= order.total) {
-        paidAmount = order.paidAmount;
-    } else {
-        const opt = String(
-            order.depositPercent || order.paymentPercent || order.paymentOption || order.depositOption || order.paymentType || ''
-        ).toLowerCase();
-        if (opt.includes('25') || opt.includes('deposit') || opt.includes('coc') || order.isDeposit === true) {
-            paidAmount = (order.total * 25) / 100;
-        } else if (opt.includes('50')) {
-            paidAmount = (order.total * 50) / 100;
-        }
-    }
-
-    const remainingAmount = order.total - paidAmount;
-    return { paidAmount, remainingAmount };
+    const total = Number(order.total);
+    const amountDue = Number(order.paymentInfo?.amountDue);
+    const paidAmount = Number(order.paymentInfo?.amountPaid);
+    const valid = order.currency === 'USD'
+        && order.moneyVersion
+        && Number.isFinite(total) && total >= 0
+        && Number.isFinite(amountDue) && amountDue >= 0
+        && Number.isFinite(paidAmount) && paidAmount >= 0
+        && paidAmount <= total
+        && Array.isArray(order.items)
+        && order.items.every(item => Number.isFinite(Number(item.price)) && Number(item.price) >= 0 && Number.isInteger(Number(item.quantity)) && Number(item.quantity) > 0);
+    return { valid, total, amountDue, paidAmount, remainingAmount: total - paidAmount };
 };
 
 // 5. HÀM RENDER BẢNG DANH SÁCH SẢN PHẨM HÓA ĐƠN
-const renderInvoiceItems = (items) => {
+const renderInvoiceItems = (items, order) => {
     if (!items || items.length === 0) return '';
     
     return items.map((item) => {
         const itemTotal = (item.price || 0) * (item.quantity || 1);
-        const validImageUrl = getImageUrl(item.image); // Tự động xử lý link ảnh
+        const validImageUrl = getImageUrl(item.image);
 
         return `
             <tr style="border-bottom: 1px solid #f0f0f0;">
@@ -82,10 +72,10 @@ const renderInvoiceItems = (items) => {
                     ${item.quantity || 1}
                 </td>
                 <td align="right" style="padding: 12px 8px; vertical-align: middle; font-size: 13px; color: #333;">
-                    ${formatPrice(item.price)}
+                    ${formatOrderPrice(item.price, order) || 'Cần đối chiếu'}
                 </td>
                 <td align="right" style="padding: 12px 8px; vertical-align: middle; font-size: 13px; font-weight: bold; color: #111;">
-                    ${formatPrice(itemTotal)}
+                    ${formatOrderPrice(itemTotal, order) || 'Cần đối chiếu'}
                 </td>
             </tr>
         `;
@@ -98,8 +88,13 @@ const sendOrderStatusEmail = async (order, status) => {
 
     const shortOrderId = order._id.toString().substring(0, 8).toUpperCase();
     const createdDate = order.createdAt ? new Date(order.createdAt).toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN');
-    const { paidAmount, remainingAmount } = calculatePaymentDetails(order);
-    const itemsHtml = renderInvoiceItems(order.items);
+    const paymentDetails = calculatePaymentDetails(order);
+    if (!paymentDetails.valid) {
+        console.warn('Không gửi email đơn hàng do dữ liệu tiền tệ cần đối chiếu.');
+        return;
+    }
+    const { total, amountDue, paidAmount, remainingAmount } = paymentDetails;
+    const itemsHtml = renderInvoiceItems(order.items, order);
 
     const customerName = order.customer.name || order.username || 'Khách hàng';
     const customerPhone = order.customer.phone || order.phone || 'Chưa cung cấp';
@@ -146,7 +141,7 @@ const sendOrderStatusEmail = async (order, status) => {
                                             <strong style="color: #0f172a; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; display: block; margin-bottom: 6px;">Chi tiết hóa đơn:</strong>
                                             <div>Mã đơn hàng: <strong style="color: #2563eb;">#${shortOrderId}</strong></div>
                                             <div>Ngày lập: ${createdDate}</div>
-                                            <div>Hình thức: ${paidAmount < order.total ? 'Đặt cọc online + COD' : 'Thanh toán 100%'}</div>
+                                            <div>Hình thức: ${order.paymentInfo.method === 'deposit' ? 'Đặt cọc online + COD' : 'Thanh toán 100%'}</div>
                                         </td>
                                     </tr>
                                 </table>
@@ -173,19 +168,25 @@ const sendOrderStatusEmail = async (order, status) => {
                                     <table width="100%" cellpadding="0" cellspacing="0" style="font-size: 13px; line-height: 2;">
                                         <tr>
                                             <td style="color: #64748b;">Tổng giá trị sản phẩm:</td>
-                                            <td align="right" style="font-weight: bold; color: #0f172a;">${formatPrice(order.total)}</td>
+                                            <td align="right" style="font-weight: bold; color: #0f172a;">${formatOrderPrice(total, order)}</td>
                                         </tr>
                                         <tr>
-                                            <td style="color: #16a34a; font-weight: 500;">Đã thanh toán (Tiền cọc):</td>
-                                            <td align="right" style="color: #16a34a; font-weight: bold;">- ${formatPrice(paidAmount)}</td>
+                                            <td style="color: #16a34a; font-weight: 500;">Đã nhận:</td>
+                                            <td align="right" style="color: #16a34a; font-weight: bold;">- ${formatOrderPrice(paidAmount, order)}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #64748b;">Cần chuyển theo phương thức:</td>
+                                            <td align="right" style="color: #64748b; font-weight: bold;">${formatOrderPrice(amountDue, order)}</td>
                                         </tr>
                                         <tr style="border-top: 1px solid #e2e8f0;">
-                                            <td style="padding-top: 8px; font-size: 14px; font-weight: bold; color: #0f172a;">CẦN THANH TOÁN KHI NHẬN HÀNG:</td>
-                                            <td align="right" style="padding-top: 8px; font-size: 18px; font-weight: 800; color: #dc2626;">${formatPrice(remainingAmount)}</td>
+                                            <td style="padding-top: 8px; font-size: 14px; font-weight: bold; color: #0f172a;">Còn phải thanh toán:</td>
+                                            <td align="right" style="padding-top: 8px; font-size: 18px; font-weight: 800; color: #dc2626;">${formatOrderPrice(remainingAmount, order)}</td>
                                         </tr>
                                     </table>
                                 </div>
                             </div>
+
+                            <div style="padding: 0 30px 20px; font-size: 12px; color: #64748b;">Thông tin chuyển khoản: số tiền chuyển khoản bằng VND theo QR/thông báo thanh toán của đơn hàng. Mã tham chiếu: ${order.paymentReference || 'Cần đối chiếu'}.</div>
 
                             <!-- FOOTER HÓA ĐƠN -->
                             <div style="background-color: #f8fafc; padding: 20px 30px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 12px; color: #64748b; line-height: 1.6;">
@@ -206,4 +207,4 @@ const sendOrderStatusEmail = async (order, status) => {
     }
 };
 
-module.exports = { sendOrderStatusEmail };
+module.exports = { sendOrderStatusEmail, calculatePaymentDetails, formatOrderPrice };
