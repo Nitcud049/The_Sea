@@ -8,6 +8,10 @@ function ProductDetailPage({ products, addToCart, formatPrice, currentUser, fetc
   const [newReview, setNewReview] = useState('');
   const [rating, setRating] = useState(5);
   const [displayImg, setDisplayImg] = useState('');
+  
+  // 1. STATE MỚI: LƯU TRỮ MÀU SẮC ĐANG ĐƯỢC CHỌN
+  const [selectedColor, setSelectedColor] = useState(null);
+
   const productIdStr = String(product?._id || product?.id || '');
   const isLiked = Boolean(currentUser?.wishlist?.some(id => String(id) === productIdStr));
 
@@ -37,6 +41,7 @@ function ProductDetailPage({ products, addToCart, formatPrice, currentUser, fetc
       console.error("Lỗi thả tim:", error);
     }
   };
+
   // Tự động cuộn lên đầu và tìm đúng sản phẩm
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -45,6 +50,21 @@ function ProductDetailPage({ products, addToCart, formatPrice, currentUser, fetc
       if (foundProduct) {
         setProduct(foundProduct);
         setDisplayImg(foundProduct.image);
+        
+        // Cài đặt màu mặc định khi vừa vào trang sản phẩm
+        if (foundProduct.defaultColorCode) {
+            setSelectedColor({
+                name: foundProduct.defaultColorName || 'Mặc định',
+                code: foundProduct.defaultColorCode,
+                img: foundProduct.image
+            });
+        } else if (foundProduct.colors && foundProduct.colors.length > 0) {
+            setSelectedColor({
+                name: foundProduct.colors[0].colorName,
+                code: foundProduct.colors[0].colorCode,
+                img: foundProduct.colors[0].colorImage
+            });
+        }
       }
     }
   }, [id, products]);
@@ -72,25 +92,22 @@ function ProductDetailPage({ products, addToCart, formatPrice, currentUser, fetc
 
     const updatedReviews = [reviewData, ...(product.reviews || [])];
 
-    // CẬP NHẬT REAL-TIME: Hiện đánh giá ngay lập tức trên màn hình khách hàng mà không cần chờ đợi Server
     setProduct(prevProduct => ({
       ...prevProduct,
       reviews: updatedReviews
     }));
 
-    // Reset Form
     setNewReview('');
     setRating(5);
     alert("✨ Cảm ơn bạn! Đánh giá đã được ghi nhận.");
 
-    // Gửi ngầm dữ liệu lên Server để lưu vào Database
     fetch(`http://127.0.0.1:5000/api/products/${product._id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...product, reviews: updatedReviews })
     })
     .then(() => {
-      if(fetchProducts) fetchProducts(); // Đồng bộ dữ liệu ngầm cho các trang khác
+      if(fetchProducts) fetchProducts();
     })
     .catch(() => alert("⚠️ Lỗi kết nối máy chủ! Dữ liệu đánh giá có thể chưa được lưu vĩnh viễn."));
   };
@@ -104,7 +121,19 @@ function ProductDetailPage({ products, addToCart, formatPrice, currentUser, fetc
     product.colors.forEach(c => allColors.push({ name: c.colorName, code: c.colorCode, img: c.colorImage }));
   }
 
-  // TÍNH TOÁN ĐIỂM ĐÁNH GIÁ TRUNG BÌNH (GIỐNG SHOPEE)
+  // HÀM MỚI: XỬ LÝ DỮ LIỆU ĐƯA VÀO GIỎ HÀNG
+  const handleAddToCart = () => {
+      const cartItem = {
+          ...product, 
+          // Ghi đè thông tin màu đã chọn vào payload
+          selectedColor: selectedColor ? selectedColor.name : 'Mặc định',
+          selectedColorCode: selectedColor ? selectedColor.code : '',
+          image: selectedColor ? (selectedColor.img || product.image) : product.image
+      };
+      addToCart(cartItem);
+  };
+
+  // TÍNH TOÁN ĐIỂM ĐÁNH GIÁ TRUNG BÌNH
   const totalReviews = product.reviews ? product.reviews.length : 0;
   const averageRating = totalReviews > 0 
     ? (product.reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1) 
@@ -113,9 +142,6 @@ function ProductDetailPage({ products, addToCart, formatPrice, currentUser, fetc
   return (
     <div style={{ backgroundColor: '#f5f5f5', minHeight: '100vh', paddingTop: '110px', paddingBottom: '60px' }}>
        
-       {/* ==================================================== */}
-       {/* 1. KHUNG THÔNG TIN SẢN PHẨM Ở TRÊN (CỘT ẢNH + THÔNG TIN) */}
-       {/* ==================================================== */}
        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '30px', backgroundColor: '#fff', borderRadius: '4px', display: 'flex', flexWrap: 'wrap', gap: '40px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
           
           <div style={{ flex: '1 1 450px' }}>
@@ -125,7 +151,6 @@ function ProductDetailPage({ products, addToCart, formatPrice, currentUser, fetc
           <div style={{ flex: '1 1 450px', display: 'flex', flexDirection: 'column' }}>
              <h1 style={{ fontSize: '24px', fontWeight: '500', marginBottom: '10px', color: '#1a1a1a' }}>{product.name}</h1>
              
-             {/* Preview Sao Nhỏ Dưới Tên */}
              <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px' }}>
                 {totalReviews > 0 ? (
                   <>
@@ -149,7 +174,21 @@ function ProductDetailPage({ products, addToCart, formatPrice, currentUser, fetc
                      <span style={{ fontSize: '14px', color: '#757575', width: '100px' }}>Màu sắc:</span>
                      <div style={{ display: 'flex', gap: '10px' }}>
                          {allColors.map((c, i) => (
-                             <div key={i} title={c.name} onMouseEnter={() => setDisplayImg(c.img)} style={{ width: '32px', height: '32px', borderRadius: '2px', backgroundColor: c.code, border: displayImg === c.img ? '2px solid #ee4d2d' : '1px solid #e1e1e1', cursor: 'pointer' }} />
+                             <div 
+                                key={i} 
+                                title={c.name} 
+                                // ĐỔI TỪ onMouseEnter SANG onClick ĐỂ CHỐT MÀU
+                                onClick={() => {
+                                    setSelectedColor(c);
+                                    setDisplayImg(c.img || product.image);
+                                }} 
+                                style={{ 
+                                    width: '32px', height: '32px', borderRadius: '2px', 
+                                    backgroundColor: c.code, 
+                                    border: selectedColor?.name === c.name ? '2px solid #ee4d2d' : '1px solid #e1e1e1', 
+                                    cursor: 'pointer' 
+                                }} 
+                             />
                          ))}
                      </div>
                  </div>
@@ -159,19 +198,16 @@ function ProductDetailPage({ products, addToCart, formatPrice, currentUser, fetc
                {product.description || "Sản phẩm chính hãng. Cam kết chất lượng và dịch vụ tốt nhất dành cho khách hàng của THE SEA."}
              </p>
 
-             <button onClick={() => addToCart(product)} style={{ width: '250px', padding: '15px', backgroundColor: '#1a1a1a', color: '#fff', border: '1px solid #1a1a1a', borderRadius: '2px', fontSize: '15px', cursor: 'pointer', transition: '0.2s' }}>
+             {/* ĐỔI THÀNH GỌI handleAddToCart */}
+             <button onClick={handleAddToCart} style={{ width: '250px', padding: '15px', backgroundColor: '#1a1a1a', color: '#fff', border: '1px solid #1a1a1a', borderRadius: '2px', fontSize: '15px', cursor: 'pointer', transition: '0.2s' }}>
                  Thêm Vào Giỏ Hàng
              </button>
           </div>
        </div>
 
-       {/* ==================================================== */}
-       {/* 2. KHU VỰC LỊCH SỬ ĐÁNH GIÁ (CHUẨN FORM SHOPEE/TIKTOK) */}
-       {/* ==================================================== */}
        <div style={{ maxWidth: '1200px', margin: '20px auto', padding: '30px', backgroundColor: '#fff', borderRadius: '4px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
           <h3 style={{ fontSize: '18px', fontWeight: '400', textTransform: 'uppercase', marginBottom: '20px', color: '#1a1a1a' }}>Đánh Giá Sản Phẩm</h3>
 
-          {/* Hộp Tổng Quan Sao */}
           <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#fffbf8', border: '1px solid #f9ede5', padding: '30px', borderRadius: '2px', marginBottom: '30px' }}>
               <div style={{ textAlign: 'center', marginRight: '40px' }}>
                   <div style={{ color: '#ee4d2d' }}>
@@ -187,7 +223,6 @@ function ProductDetailPage({ products, addToCart, formatPrice, currentUser, fetc
               </div>
           </div>
 
-          {/* Form để Khách hàng tự viết bình luận */}
           <div style={{ paddingBottom: '30px', marginBottom: '30px', borderBottom: '1px solid #f5f5f5' }}>
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
                   <span style={{ fontSize: '14px', marginRight: '15px', color: '#555' }}>Chạm để đánh giá:</span>
@@ -199,18 +234,14 @@ function ProductDetailPage({ products, addToCart, formatPrice, currentUser, fetc
               <button onClick={handleSubmitReview} style={{ padding: '10px 30px', backgroundColor: '#ee4d2d', color: '#fff', border: 'none', borderRadius: '2px', cursor: 'pointer', fontSize: '14px' }}>Gửi Đánh Giá</button>
           </div>
 
-          {/* Danh sách các Bình Luận (Reviews) giống Shopee */}
           <div>
               {product.reviews && product.reviews.length > 0 ? (
                   product.reviews.map(r => (
                       <div key={r.id} style={{ display: 'flex', gap: '15px', borderBottom: '1px solid #f5f5f5', paddingBottom: '20px', marginBottom: '20px' }}>
-                          
-                          {/* Avatar Hình Tròn */}
                           <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#f1f1f1', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold', color: '#666', fontSize: '16px' }}>
                               {r.name.charAt(0).toUpperCase()}
                           </div>
                           
-                          {/* Nội dung Review */}
                           <div style={{ flex: 1 }}>
                               <div style={{ fontSize: '12px', color: '#222' }}>{r.name}</div>
                               <div style={{ color: '#ee4d2d', fontSize: '12px', margin: '4px 0' }}>
@@ -234,7 +265,6 @@ function ProductDetailPage({ products, addToCart, formatPrice, currentUser, fetc
                   </div>
               )}
           </div>
-
        </div>
     </div>
   );

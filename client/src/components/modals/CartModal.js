@@ -100,20 +100,21 @@ const CartModal = ({
                             {/* DANH SÁCH SẢN PHẨM */}
                             <div style={{ marginBottom: "35px" }}>
                                 {cart.map((item) => (
-                                    <div key={item._id} style={{ display: "flex", marginBottom: "20px" }}>
+                                    <div key={`${item._id}-${item.selectedColor || 'default'}`} style={{ display: "flex", marginBottom: "20px" }}>
                                         <img src={item.image} style={{ width: "70px", height: "90px", objectFit: "cover", backgroundColor: "#f6f5f3" }} alt={item.name}/>
                                         <div style={{ paddingLeft: "20px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                                             <div>
                                                 <div style={{ fontSize: "14px", fontWeight: 500, marginBottom: "3px" }}>{item.name}</div>
+                                                <div style={{ fontSize: "12px", color: "#888", marginBottom: "3px" }}>Màu sắc: {item.selectedColor || 'Mặc định'}</div>
                                                 <div style={{ fontSize: "13px", color: "#666" }}>{formatPrice(item.price)} x {item.quantity}</div>
                                             </div>
                                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                                 <div style={{ border: "1px solid #eaeaea", display: "inline-flex", borderRadius: "20px" }}>
-                                                    <button onClick={() => decreaseQty(item._id)} style={{ padding: "3px 10px", background: "#fff", border: "none", cursor: "pointer" }}>-</button>
+                                                    <button onClick={() => decreaseQty(item._id, item.selectedColor)} style={{ padding: "3px 10px", background: "#fff", border: "none", cursor: "pointer" }}>-</button>
                                                     <span style={{ padding: "3px 8px", fontSize: "12px" }}>{item.quantity}</span>
-                                                    <button onClick={() => increaseQty(item._id)} style={{ padding: "3px 10px", background: "#fff", border: "none", cursor: "pointer" }}>+</button>
+                                                    <button onClick={() => increaseQty(item._id, item.selectedColor)} style={{ padding: "3px 10px", background: "#fff", border: "none", cursor: "pointer" }}>+</button>
                                                 </div>
-                                                <span onClick={() => removeFromCart(item._id)} style={{ fontSize: "12px", textDecoration: "underline", cursor: "pointer", color: "#999" }}>Xóa</span>
+                                                <span onClick={() => removeFromCart(item._id, item.selectedColor)} style={{ fontSize: "12px", textDecoration: "underline", cursor: "pointer", color: "#999" }}>Xóa</span>
                                             </div>
                                         </div>
                                     </div>

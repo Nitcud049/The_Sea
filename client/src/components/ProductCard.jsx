@@ -1,16 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// THÊM: currentUser và setCurrentUser vào props để nhận dữ liệu từ App.jsx
 function ProductCard({ product, setSelectedProduct, addToCart, formatPrice, currentUser, setCurrentUser }) {
   const navigate = useNavigate();
   const [displayImage, setDisplayImage] = useState(product.image);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Giữ nguyên logic cập nhật ảnh của bạn
+  // STATE MỚI: Theo dõi màu sắc thực tế đang được chọn (dựa trên ảnh đang hiển thị)
+  const [selectedColorDetails, setSelectedColorDetails] = useState({
+    name: product.defaultColorName || 'Mặc định',
+    code: product.defaultColorCode || '',
+    img: product.image
+  });
+
   useEffect(() => {
     setDisplayImage(product.image);
-  }, [product.image]);
+    setSelectedColorDetails({
+        name: product.defaultColorName || 'Mặc định',
+        code: product.defaultColorCode || '',
+        img: product.image
+    });
+  }, [product]);
+
+  // Hàm xử lý khi người dùng rà chuột qua các chấm màu
+  const handleColorHover = (colorName, colorCode, imageSrc) => {
+    setDisplayImage(imageSrc);
+    setSelectedColorDetails({
+        name: colorName,
+        code: colorCode,
+        img: imageSrc
+    });
+  };
+
+  // Hàm xử lý "Thêm vào giỏ"
+  const handleAddToCart = (e) => {
+      e.stopPropagation();
+      // Ghi đè thông tin màu sắc vào payload product trước khi đẩy vào giỏ
+      const cartItem = {
+          ...product,
+          selectedColor: selectedColorDetails.name,
+          selectedColorCode: selectedColorDetails.code,
+          image: selectedColorDetails.img
+      };
+      addToCart(cartItem);
+  };
 
   // =======================================
   // LOGIC THẢ TIM (WISHLIST)
@@ -93,7 +126,7 @@ function ProductCard({ product, setSelectedProduct, addToCart, formatPrice, curr
             </svg>
           </div>
 
-          {/* SỬA ĐỔI: Nút Trái tim (Góc phải) - Tăng zIndex và diện tích bấm */}
+          {/* SỬA ĐỔI: Nút Trái tim (Góc phải) */}
           <button 
             type="button"
             onClick={handleToggleHeart}
@@ -113,12 +146,10 @@ function ProductCard({ product, setSelectedProduct, addToCart, formatPrice, curr
             onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
           >
             {isLiked ? (
-               // Tim đỏ (đã thích)
                <svg width="18" height="18" viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" strokeWidth="1.2">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                </svg>
             ) : (
-               // Tim rỗng (chưa thích)
                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="1.8">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                </svg>
@@ -137,14 +168,14 @@ function ProductCard({ product, setSelectedProduct, addToCart, formatPrice, curr
             }}
           />
 
-          {/* NÚT THÊM VÀO GIỎ HÀNG (GIỮ NGUYÊN HOÀN TOÀN CỦA BẠN) */}
+          {/* SỬA ĐỔI: GỌI HÀM handleAddToCart */}
           <div style={{
             position: 'absolute', bottom: isHovered ? '15px' : '-10px', left: '50%',
             transform: 'translateX(-50%)', width: '85%', opacity: isHovered ? 1 : 0,
             visibility: isHovered ? 'visible' : 'hidden', transition: 'all 0.3s ease', zIndex: 2
           }}>
             <button 
-              onClick={(e) => { e.stopPropagation(); addToCart(product); }}
+              onClick={handleAddToCart}
               style={{ 
                 width: '100%', padding: '12px', backgroundColor: '#1a1a1a', color: '#fff', 
                 border: 'none', borderRadius: '4px', fontSize: '13px', fontWeight: 'bold', 
@@ -161,7 +192,6 @@ function ProductCard({ product, setSelectedProduct, addToCart, formatPrice, curr
         {/* ======================================= */}
         <div style={{ padding: '0 5px', display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
           
-          {/* Nửa trên: Label và Tên sản phẩm */}
           <div>
             <div style={{ fontSize: '11px', color: '#666', marginBottom: '5px', minHeight: '16px' }}>
               {displayLabel}
@@ -171,26 +201,25 @@ function ProductCard({ product, setSelectedProduct, addToCart, formatPrice, curr
               onClick={() => navigate(`/product/${product._id}`)} 
               style={{ 
                 fontSize: '13px', margin: '0', fontWeight: '400', color: '#1a1a1a', lineHeight: '1.4', cursor: 'pointer',
-                display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' // Giới hạn tên tối đa 2 dòng
+                display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' 
               }}
             >
               {product.name}
             </h4>
           </div>
           
-          {/* Nửa dưới: Giá và Màu sắc CÙNG NẰM TRÊN 1 HÀNG */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
             
             <span style={{ fontSize: '13px', color: '#1a1a1a', fontWeight: '400' }}>
               {formatPrice(product.price)}
             </span>
 
-            {/* LOGIC MÀU SẮC ĐƯỢC GIỮ NGUYÊN (Chỉ thu nhỏ size một chút để vừa hàng) */}
+            {/* SỬA ĐỔI: Gọi hàm handleColorHover thay vì setDisplayImage */}
             {product.colors && product.colors.length > 0 && (
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
                 
                 <div 
-                  onMouseEnter={() => setDisplayImage(product.image)}
+                  onMouseEnter={() => handleColorHover(product.defaultColorName || "Mặc định", product.defaultColorCode, product.image)}
                   title={product.defaultColorName || "Mặc định"}
                   style={{ 
                     width: '12px', height: '12px', borderRadius: '50%', 
@@ -203,7 +232,7 @@ function ProductCard({ product, setSelectedProduct, addToCart, formatPrice, curr
                 {product.colors.map((c, idx) => (
                   <div 
                     key={idx}
-                    onMouseEnter={() => setDisplayImage(c.colorImage)}
+                    onMouseEnter={() => handleColorHover(c.colorName, c.colorCode, c.colorImage)}
                     title={c.colorName}
                     style={{ 
                       width: '12px', height: '12px', borderRadius: '50%', 

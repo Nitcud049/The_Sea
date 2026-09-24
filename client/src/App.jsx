@@ -12,7 +12,7 @@ import Footer from './components/Footer';
 import ProductCard from './components/ProductCard';
 import Home from './pages/Home';
 import AdminPanel from './pages/admin/AdminPanel';
-import Contact from './pages/Contact'; // Đã import trang Contact
+import Contact from './pages/Contact'; 
 import StoreAppointment from './pages/StoreAppointment/StoreAppointment';
 
 import AuthModal from './components/modals/AuthModal';
@@ -47,6 +47,7 @@ import WishlistPage from './pages/WishlistPage';
 import ContactPage from './pages/contact/ContactPage';
 import ContactMail from './pages/contact/ContactMail';
 import ServicesPage from './pages/ServicesPage';
+
 // ==========================================
 // COMPONENT: CUỘN LÊN ĐẦU TRANG KHI ĐỔI ROUTE
 // ==========================================
@@ -157,7 +158,6 @@ function AppContent() {
   }, [currentUser]);
 
   // 2. USE-EFFECT CÔNG CỘNG: KÉO CẤU HÌNH TRANG CHỦ KHI VỪA MỞ WEB
-  // (Đoạn này đã được đưa ra ngoài, chạy độc lập để khách hàng cũng xem được)
   useEffect(() => {
     fetch('http://127.0.0.1:5000/api/settings/homepage')
       .then(res => res.json())
@@ -167,9 +167,8 @@ function AppContent() {
         }
       })
       .catch(err => console.log("Chưa có cấu hình trang chủ:", err));
-  }, []); // <-- Mảng [] giúp lệnh chạy ngay lúc mới mở web (F5)
+  }, []);
   
-
   const formatPrice = (basePrice) => {
       const convertedPrice = basePrice * exchangeRates[storeCurrency];
       if (storeCurrency === 'VND') return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(convertedPrice);
@@ -185,11 +184,44 @@ function AppContent() {
   useEffect(() => { fetchProducts(); }, []);
   useEffect(() => { if(isAdminMode) { fetchOrders(); fetchUsers(); } }, [isAdminMode]);
 
+  // ========================================================
+  // LOGIC GIỎ HÀNG MỚI: PHÂN BIỆT THEO _id VÀ selectedColor
+  // ========================================================
   const addToCart = (product) => { 
-      const existingItem = cart.find(item => item._id === product._id && item.image === product.image); 
-      if (existingItem) setCart(cart.map(i => (i._id === product._id && i.image === product.image) ? { ...i, quantity: i.quantity + 1 } : i)); 
-      else setCart([...cart, { ...product, quantity: 1 }]); 
+      const colorKey = product.selectedColor || 'Mặc định';
+      const existingItem = cart.find(item => item._id === product._id && (item.selectedColor || 'Mặc định') === colorKey); 
+      
+      if (existingItem) {
+          setCart(cart.map(i => (i._id === product._id && (i.selectedColor || 'Mặc định') === colorKey) 
+              ? { ...i, quantity: i.quantity + 1 } 
+              : i
+          )); 
+      } else {
+          setCart([...cart, { ...product, selectedColor: colorKey, quantity: 1 }]); 
+      }
   };
+
+  const increaseQty = (id, color) => {
+      const colorKey = color || 'Mặc định';
+      setCart(cart.map(i => (i._id === id && (i.selectedColor || 'Mặc định') === colorKey) 
+          ? { ...i, quantity: i.quantity + 1 } 
+          : i
+      ));
+  };
+
+  const decreaseQty = (id, color) => {
+      const colorKey = color || 'Mặc định';
+      setCart(cart.map(i => (i._id === id && (i.selectedColor || 'Mặc định') === colorKey) 
+          ? { ...i, quantity: i.quantity - 1 } 
+          : i
+      ).filter(i => i.quantity > 0));
+  };
+
+  const removeFromCart = (id, color) => {
+      const colorKey = color || 'Mặc định';
+      setCart(cart.filter(i => !(i._id === id && (i.selectedColor || 'Mặc định') === colorKey)));
+  };
+  // ========================================================
 
   const handleSaveProduct = () => {
       let priceValue = Number(newProduct.price);
@@ -280,17 +312,13 @@ function AppContent() {
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/book-appointment" element={<StoreAppointment currentUser={currentUser} setCurrentUser={setCurrentUser} />} /> 
           
-          
-          
           <Route path="/checkout/success" element={<CheckoutSuccessPage currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
-          
           
           <Route path="/contact" element={<Contact currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
           <Route path="/contact-us" element={<ContactPage currentUser={currentUser} setCurrentUser={setCurrentUser}/>} /> 
           <Route path="/contact-mail" element={<ContactMail currentUser={currentUser} setCurrentUser={setCurrentUser}/>} /> 
           <Route path="/travel" element={<TravelPage products={products} setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
           
-
           <Route path="/men/accessories" element={<MenAccessoriesPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
           <Route path="/men/clothing" element={<MenClothingPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
           <Route path="/men/bags" element={<MenBagsPage products={products} setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
@@ -299,7 +327,6 @@ function AppContent() {
           <Route path="/men/new-arrivals" element={<MenNewArrivalsPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
           <Route path="/men/shoes" element={<MenShoesPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
           
-
           <Route path="/women/bags" element={<WomenBagsPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
           <Route path="/women/clothing" element={<WomenClothingPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
           <Route path="/women/jewelry" element={<WomenJewelryPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
@@ -352,21 +379,19 @@ function AppContent() {
              )
           } />
           
-
-<Route 
-    path="/wishlist" 
-    element={
-        <WishlistPage 
-            products={products} 
-            currentUser={currentUser} 
-            setCurrentUser={setCurrentUser} 
-            setSelectedProduct={setSelectedProduct} 
-            addToCart={addToCart} 
-            formatPrice={formatPrice} 
-        />
-    } 
-/>
-{/*---*/}
+          <Route 
+              path="/wishlist" 
+              element={
+                  <WishlistPage 
+                      products={products} 
+                      currentUser={currentUser} 
+                      setCurrentUser={setCurrentUser} 
+                      setSelectedProduct={setSelectedProduct} 
+                      addToCart={addToCart} 
+                      formatPrice={formatPrice} 
+                  />
+              } 
+          />
         </Routes>
         
       </main>
@@ -375,7 +400,22 @@ function AppContent() {
 
       <SearchModal showSearchModal={showSearchModal} setShowSearchModal={setShowSearchModal} products={products} setSelectedProduct={setSelectedProduct} formatPrice={formatPrice} />
       <AuthModal showLoginModal={showLoginModal} setShowLoginModal={setShowLoginModal} setCurrentUser={setCurrentUser} validatePhoneAndEmail={validatePhoneAndEmail} />
-      <CartModal showCartModal={showCartModal} setShowCartModal={setShowCartModal} cart={cart} decreaseQty={(id) => setCart(cart.map(i => i._id === id ? {...i, quantity: i.quantity - 1} : i).filter(i => i.quantity > 0))} increaseQty={(id) => setCart(cart.map(i => i._id === id ? {...i, quantity: i.quantity + 1} : i))} removeFromCart={(id) => setCart(cart.filter(i => i._id !== id))} currentUser={currentUser} customerInfo={customerInfo} setCustomerInfo={setCustomerInfo} formatPrice={formatPrice} handleCheckout={handleCheckout} />
+      
+      {/* TRUYỀN CÁC HÀM MỚI XUỐNG CART MODAL */}
+      <CartModal 
+          showCartModal={showCartModal} 
+          setShowCartModal={setShowCartModal} 
+          cart={cart} 
+          decreaseQty={decreaseQty} 
+          increaseQty={increaseQty} 
+          removeFromCart={removeFromCart} 
+          currentUser={currentUser} 
+          customerInfo={customerInfo} 
+          setCustomerInfo={setCustomerInfo} 
+          formatPrice={formatPrice} 
+          handleCheckout={handleCheckout} 
+      />
+      
       <ProductModal selectedProduct={selectedProduct} setSelectedProduct={setSelectedProduct} handleBuyNow={(p) => {addToCart(p); setSelectedProduct(null); setShowCartModal(true);}} addToCart={addToCart} formatPrice={formatPrice} />
       {showProfileModal && (
         <ProfileModal 
@@ -396,7 +436,7 @@ function AppContent() {
 }
 
 // ==========================================
-// VỎ BỌC ROUTER (ĐÃ HOÀN THIỆN)
+// VỎ BỌC ROUTER
 // ==========================================
 export default function App() {
   return (

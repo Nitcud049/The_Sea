@@ -2,27 +2,32 @@ import React, { useState, useEffect } from 'react';
 
 function ProductModal({ selectedProduct, setSelectedProduct, handleBuyNow, addToCart, formatPrice, currentUser, setCurrentUser }) {
   const [modalImage, setModalImage] = useState('');
-  const [selectedColor, setSelectedColor] = useState('');
+  const [selectedColorName, setSelectedColorName] = useState('');
+  const [selectedColorCode, setSelectedColorCode] = useState('');
 
   useEffect(() => {
     if (selectedProduct) {
       setModalImage(selectedProduct.image);
-      // Mặc định ban đầu lấy đúng tên màu gốc thay vì chữ "Mặc định" chung chung
-      setSelectedColor(selectedProduct.defaultColorName || 'Mặc định');
+      setSelectedColorName(selectedProduct.defaultColorName || 'Mặc định');
+      setSelectedColorCode(selectedProduct.defaultColorCode || '');
     }
   }, [selectedProduct]);
 
   if (!selectedProduct) return null;
 
-  const handleSelectColor = (name, img) => {
-    setSelectedColor(name);
+  // Cập nhật hàm xử lý chọn màu để nhận thêm mã màu (code)
+  const handleSelectColor = (name, code, img) => {
+    setSelectedColorName(name);
+    setSelectedColorCode(code);
     setModalImage(img);
   };
 
   const handleAddToCartWithColor = () => {
     const finalProduct = {
       ...selectedProduct,
-      name: `${selectedProduct.name} (Màu ${selectedColor})`,
+      // Không ghi đè tên sản phẩm nữa, gửi kèm các trường màu sắc riêng biệt
+      selectedColor: selectedColorName,
+      selectedColorCode: selectedColorCode,
       image: modalImage
     };
     addToCart(finalProduct);
@@ -48,25 +53,24 @@ function ProductModal({ selectedProduct, setSelectedProduct, handleBuyNow, addTo
             <p style={{ fontSize: '14px', color: '#444', lineHeight: '1.6', margin: 0 }}>{selectedProduct.description || "Hành trang thời trang đẳng cấp từ bộ sưu tập cao cấp của THE SEA."}</p>
           </div>
 
-          {/* KHU VỰC Ô TRÒN MÀU SẮC ĐÃ ĐƯỢC CHỈNH SỬA TOÀN DIỆN */}
           <div style={{ marginBottom: '30px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
             <p style={{ margin: '0 0 15px 0', fontSize: '14px', color: '#1a1a1a' }}>
-              Màu sắc: <span style={{ fontWeight: 'bold', marginLeft: '5px', color: '#1a1a1a' }}>{selectedColor}</span>
+              Màu sắc: <span style={{ fontWeight: 'bold', marginLeft: '5px', color: '#1a1a1a' }}>{selectedColorName}</span>
             </p>
             
             {selectedProduct.colors && selectedProduct.colors.length > 0 ? (
               <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
                 
-                {/* Ô TRÒN MÀU GỐC MẶC ĐỊNH: Đã hiển thị đúng mã màu thực tế */}
+                {/* Ô TRÒN MÀU GỐC MẶC ĐỊNH */}
                 <div 
-                  onClick={() => handleSelectColor(selectedProduct.defaultColorName || 'Mặc định', selectedProduct.image)}
+                  onClick={() => handleSelectColor(selectedProduct.defaultColorName || 'Mặc định', selectedProduct.defaultColorCode, selectedProduct.image)}
                   title={selectedProduct.defaultColorName || "Mặc định"}
                   style={{
                     width: '28px', height: '28px', borderRadius: '50%', 
-                    backgroundColor: selectedProduct.defaultColorCode || '#ffffff', // LÊN ĐÚNG MÀU THỰC TẾ
+                    backgroundColor: selectedProduct.defaultColorCode || '#ffffff', 
                     cursor: 'pointer', transition: 'all 0.2s',
-                    border: selectedColor === (selectedProduct.defaultColorName || 'Mặc định') ? '2px solid #1a1a1a' : '1px solid #ddd',
-                    boxShadow: selectedColor === (selectedProduct.defaultColorName || 'Mặc định') ? '0 0 0 2px #fff, 0 0 0 3px #1a1a1a' : 'none'
+                    border: selectedColorName === (selectedProduct.defaultColorName || 'Mặc định') ? '2px solid #1a1a1a' : '1px solid #ddd',
+                    boxShadow: selectedColorName === (selectedProduct.defaultColorName || 'Mặc định') ? '0 0 0 2px #fff, 0 0 0 3px #1a1a1a' : 'none'
                   }}
                 />
 
@@ -74,20 +78,19 @@ function ProductModal({ selectedProduct, setSelectedProduct, handleBuyNow, addTo
                 {selectedProduct.colors.map((c, idx) => (
                   <div 
                     key={idx}
-                    onClick={() => handleSelectColor(c.colorName, c.colorImage)}
+                    onClick={() => handleSelectColor(c.colorName, c.colorCode, c.colorImage)}
                     title={c.colorName}
                     style={{
                       width: '28px', height: '28px', borderRadius: '50%', 
                       backgroundColor: c.colorCode, 
                       cursor: 'pointer', transition: 'all 0.2s',
-                      border: selectedColor === c.colorName ? '2px solid #1a1a1a' : '1px solid #ddd',
-                      boxShadow: selectedColor === c.colorName ? '0 0 0 2px #fff, 0 0 0 3px #1a1a1a' : 'none'
+                      border: selectedColorName === c.colorName ? '2px solid #1a1a1a' : '1px solid #ddd',
+                      boxShadow: selectedColorName === c.colorName ? '0 0 0 2px #fff, 0 0 0 3px #1a1a1a' : 'none'
                     }}
                   />
                 ))}
               </div>
             ) : (
-              // Nếu không có màu bổ sung nào khác, thông báo rõ ràng
               <p style={{ fontSize: '13px', color: '#888', fontStyle: 'italic', margin: 0 }}>Sản phẩm này không có biến thể màu sắc khác.</p>
             )}
           </div>
@@ -103,7 +106,8 @@ function ProductModal({ selectedProduct, setSelectedProduct, handleBuyNow, addTo
               onClick={() => {
                 handleBuyNow({
                   ...selectedProduct,
-                  name: `${selectedProduct.name} (Màu ${selectedColor})`,
+                  selectedColor: selectedColorName,
+                  selectedColorCode: selectedColorCode,
                   image: modalImage
                 });
                 setSelectedProduct(null);
