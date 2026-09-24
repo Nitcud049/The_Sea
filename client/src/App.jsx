@@ -49,6 +49,29 @@ import ContactMail from './pages/contact/ContactMail';
 import ServicesPage from './pages/ServicesPage';
 
 // ==========================================
+// 3. IMPORT CÁC TRANG FOOTER MỚI TẠO
+// ==========================================
+import FAQPage from './pages/footerPages/FAQPage';
+import ProductCarePage from './pages/footerPages/ProductCarePage';
+import StoresPage from './pages/footerPages/StoresPage';
+import RepairsPage from './pages/footerPages/RepairsPage';
+import PersonalizationPage from './pages/footerPages/PersonalizationPage';
+import GiftingPage from './pages/footerPages/GiftingPage';
+import AppsPage from './pages/footerPages/AppsPage';
+import FashionShowsPage from './pages/footerPages/FashionShowsPage';
+import ArtsCulturePage from './pages/footerPages/ArtsCulturePage';
+import LaMaisonPage from './pages/footerPages/LaMaisonPage';
+import SustainabilityPage from './pages/footerPages/SustainabilityPage';
+import NewsPage from './pages/footerPages/NewsPage';
+import EthicsCompliancePage from './pages/footerPages/EthicsCompliancePage';
+import CareersPage from './pages/footerPages/CareersPage';
+import FoundationPage from './pages/footerPages/FoundationPage';
+import NewsletterPage from './pages/footerPages/NewsletterPage';
+import SitemapPage from './pages/footerPages/SitemapPage';
+import LegalPrivacyPage from './pages/footerPages/LegalPrivacyPage';
+import CookiesPage from './pages/footerPages/CookiesPage';
+
+// ==========================================
 // COMPONENT: CUỘN LÊN ĐẦU TRANG KHI ĐỔI ROUTE
 // ==========================================
 function ScrollToTop() {
@@ -318,6 +341,34 @@ function AppContent() {
           <Route path="/contact-us" element={<ContactPage currentUser={currentUser} setCurrentUser={setCurrentUser}/>} /> 
           <Route path="/contact-mail" element={<ContactMail currentUser={currentUser} setCurrentUser={setCurrentUser}/>} /> 
           <Route path="/travel" element={<TravelPage products={products} setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
+
+          {/* HELP ROUTES */}
+          <Route path="/faq" element={<FAQPage />} />
+          <Route path="/product-care" element={<ProductCarePage />} />
+          <Route path="/services/care" element={<ProductCarePage />} />
+          <Route path="/stores" element={<StoresPage />} />
+
+          {/* SERVICES ROUTES */}
+          <Route path="/services/repairs" element={<RepairsPage />} />
+          <Route path="/services/personalization" element={<PersonalizationPage />} />
+          <Route path="/services/gifting" element={<GiftingPage />} />
+          <Route path="/services/apps" element={<AppsPage />} />
+
+          {/* ABOUT THE SEA ROUTES */}
+          <Route path="/about/fashion-shows" element={<FashionShowsPage />} />
+          <Route path="/about/arts-culture" element={<ArtsCulturePage />} />
+          <Route path="/about/la-maison" element={<LaMaisonPage />} />
+          <Route path="/about/sustainability" element={<SustainabilityPage />} />
+          <Route path="/about/news" element={<NewsPage />} />
+          <Route path="/about/ethics-compliance" element={<EthicsCompliancePage />} />
+          <Route path="/about/careers" element={<CareersPage />} />
+          <Route path="/about/foundation" element={<FoundationPage />} />
+
+          {/* FOOTER EXTRA ROUTES */}
+          <Route path="/newsletter" element={<NewsletterPage />} />
+          <Route path="/sitemap" element={<SitemapPage />} />
+          <Route path="/legal/privacy" element={<LegalPrivacyPage />} />
+          <Route path="/legal/cookies" element={<CookiesPage />} />
           
           <Route path="/men/accessories" element={<MenAccessoriesPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
           <Route path="/men/clothing" element={<MenClothingPage setSelectedProduct={setSelectedProduct} addToCart={addToCart} formatPrice={formatPrice} currentUser={currentUser} setCurrentUser={setCurrentUser}/>} />
