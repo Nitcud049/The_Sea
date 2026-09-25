@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 // CHỈ CÓ 1 DÒNG IMPORT ROUTER DUY NHẤT Ở ĐÂY:
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import './App.css'; 
@@ -150,11 +150,12 @@ function AppContent() {
   const [activeTab, setActiveTab] = useState('list');
   const [users, setUsers] = useState([]);
   const [storeCurrency, setStoreCurrency] = useState('VND');
+  const [exchangeRates, setExchangeRates] = useState(null);
+  const checkoutInFlight = useRef(false);
+  const orderUpdatesInFlight = useRef(new Set());
 
   // STATE QUẢN LÝ CẤU HÌNH TRANG CHỦ
   const [homepageConfig, setHomepageConfig] = useState(null);
-
-  const exchangeRates = { USD: 1, VND: 25400, EUR: 0.92, JPY: 151 };
 
   // TỰ ĐỘNG ĐỒNG BỘ LOCAL STORAGE KHI USER THAY ĐỔI
   useEffect(() => {
@@ -164,6 +165,15 @@ function AppContent() {
       localStorage.removeItem('the_sea_user');
     }
   }, [currentUser]);
+
+  useEffect(() => {
+    fetch('http://127.0.0.1:5000/api/currency')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.rates) setExchangeRates(data.rates);
+      })
+      .catch(err => console.error('Không thể tải cấu hình tiền tệ:', err));
+  }, []);
 
   // TỰ ĐỘNG ĐỒNG BỘ GIỎ HÀNG VÀO LOCAL STORAGE
   useEffect(() => {
@@ -193,7 +203,7 @@ function AppContent() {
   }, []);
   
   const formatPrice = (basePrice) => {
-      const convertedPrice = basePrice * exchangeRates[storeCurrency];
+      const convertedPrice = (Number(basePrice) || 0) * (exchangeRates?.[storeCurrency] || (storeCurrency === 'USD' ? 1 : 0));
       if (storeCurrency === 'VND') return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(convertedPrice);
       if (storeCurrency === 'EUR') return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(convertedPrice);
       if (storeCurrency === 'JPY') return new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(convertedPrice);
@@ -212,43 +222,47 @@ function AppContent() {
   // ========================================================
   const addToCart = (product) => { 
       const colorKey = product.selectedColor || 'Mặc định';
-      const existingItem = cart.find(item => item._id === product._id && (item.selectedColor || 'Mặc định') === colorKey); 
+      const cartItemKey = product.cartItemKey || `${product._id}-${product.selectedColorId || colorKey}`;
+      const existingItem = cart.find(item => (item.cartItemKey || `${item._id}-${item.selectedColorId || item.selectedColor || 'Mặc định'}`) === cartItemKey);
       
       if (existingItem) {
-          setCart(cart.map(i => (i._id === product._id && (i.selectedColor || 'Mặc định') === colorKey) 
+          setCart(cart.map(i => ((i.cartItemKey || `${i._id}-${i.selectedColorId || i.selectedColor || 'Mặc định'}`) === cartItemKey)
               ? { ...i, quantity: i.quantity + 1 } 
               : i
           )); 
       } else {
-          setCart([...cart, { ...product, selectedColor: colorKey, quantity: 1 }]); 
+          setCart([...cart, { ...product, selectedColor: colorKey, cartItemKey, quantity: 1 }]);
       }
   };
 
-  const increaseQty = (id, color) => {
+    const increaseQty = (id, color, cartItemKey) => {
       const colorKey = color || 'Mặc định';
-      setCart(cart.map(i => (i._id === id && (i.selectedColor || 'Mặc định') === colorKey) 
+      setCart(cart.map(i => (cartItemKey ? i.cartItemKey === cartItemKey : i._id === id && (i.selectedColor || 'Mặc định') === colorKey)
           ? { ...i, quantity: i.quantity + 1 } 
           : i
       ));
   };
 
-  const decreaseQty = (id, color) => {
+    const decreaseQty = (id, color, cartItemKey) => {
       const colorKey = color || 'Mặc định';
-      setCart(cart.map(i => (i._id === id && (i.selectedColor || 'Mặc định') === colorKey) 
+      setCart(cart.map(i => (cartItemKey ? i.cartItemKey === cartItemKey : i._id === id && (i.selectedColor || 'Mặc định') === colorKey)
           ? { ...i, quantity: i.quantity - 1 } 
           : i
       ).filter(i => i.quantity > 0));
   };
 
-  const removeFromCart = (id, color) => {
+    const removeFromCart = (id, color, cartItemKey) => {
       const colorKey = color || 'Mặc định';
-      setCart(cart.filter(i => !(i._id === id && (i.selectedColor || 'Mặc định') === colorKey)));
+      setCart(cart.filter(i => !(cartItemKey ? i.cartItemKey === cartItemKey : i._id === id && (i.selectedColor || 'Mặc định') === colorKey)));
   };
   // ========================================================
 
   const handleSaveProduct = () => {
       let priceValue = Number(newProduct.price);
-      if (newProduct.inputCurrency === 'VND') { priceValue = priceValue / 25400; }
+      if (newProduct.inputCurrency === 'VND') {
+        if (!exchangeRates?.VND) return alert("⚠️ Chưa tải được tỷ giá tiền tệ!");
+        priceValue = priceValue / exchangeRates.VND;
+      }
       const formattedProduct = { ...newProduct, price: priceValue };
 
       if (!formattedProduct.name.trim()) return alert("⚠️ Vui lòng điền tên sản phẩm!");
@@ -279,26 +293,180 @@ function AppContent() {
     }
     return true;
   };
+// CẬP NHẬT: Xử lý cập nhật trạng thái đơn hàng
+  const handleUpdateOrderStatus = async (id, status) => {
+  const key = String(id);
 
-  const handleCheckout = (paymentMethod, amountToPay, bankName) => {
-    const currentTotal = cart.reduce((a, b) => a + (b.price * b.quantity), 0);
+  // Không gửi đồng thời nhiều yêu cầu cho cùng một đơn.
+  if (orderUpdatesInFlight.current.has(key)) return;
+  orderUpdatesInFlight.current.add(key);
+
+  const sendUpdate = async (extra = {}) => {
+    const response = await fetch(
+      `http://127.0.0.1:5000/api/orders/${encodeURIComponent(key)}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          status,
+          ...extra
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    return {
+      response,
+      data
+    };
+  };
+
+  try {
+    let question = 'Bạn muốn cập nhật trạng thái đơn hàng này?';
+
+    if (status === 'confirmed') {
+      question =
+        'Chỉ tiếp tục khi cửa hàng đã kiểm tra và nhận đủ khoản thanh toán ban đầu của đơn ' +
+        '(tiền cọc hoặc toàn bộ tiền theo phương án khách chọn).\n\n' +
+        'Bạn xác nhận đã nhận đủ khoản tiền đó?';
+    } else if (status === 'shipping') {
+      question =
+        'Bạn xác nhận bàn giao đơn hàng này để vận chuyển?';
+    } else if (status === 'completed') {
+      question =
+        'Bạn xác nhận đơn hàng đã được giao thành công? ' +
+        'Nếu còn tiền phải thu, hệ thống sẽ yêu cầu xác nhận riêng.';
+    } else if (status === 'cancelled') {
+      question =
+        'Bạn muốn hủy đơn hàng này? ' +
+        'Thao tác này không tự hoàn tiền hoặc xóa số tiền đã nhận.';
+    }
+
+    if (!window.confirm(question)) return;
+
+    let result = await sendUpdate();
+
+    // Controller yêu cầu xác nhận riêng khi đơn còn COD.
+    if (
+      status === 'completed' &&
+      result.response.status === 409 &&
+      result.data?.code ===
+        'REMAINING_PAYMENT_CONFIRMATION_REQUIRED'
+    ) {
+      const remainingUSD = result.data.remainingUSD;
+
+      if (
+        typeof remainingUSD !== 'number' ||
+        !Number.isFinite(remainingUSD) ||
+        remainingUSD <= 0
+      ) {
+        throw new Error(
+          'Server trả về số tiền còn lại không hợp lệ. ' +
+          'Hãy làm mới danh sách.'
+        );
+      }
+
+      // Dùng số tiền server trả về, không tự tính từ dữ liệu cũ.
+      const amountText = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: 6
+      }).format(remainingUSD);
+
+      const receivedRemaining = window.confirm(
+        `Đơn còn phải thu ${amountText} (đơn vị gốc USD).\n\n` +
+        'Bạn xác nhận cửa hàng đã nhận đủ khoản còn lại này? ' +
+        'Chỉ chọn OK sau khi đã đối chiếu tiền thực nhận.'
+      );
+
+      if (!receivedRemaining) return;
+
+      result = await sendUpdate({
+        confirmRemainingPayment: true
+      });
+    }
+
+    if (
+      !result.response.ok ||
+      result.data?.success === false
+    ) {
+      throw new Error(
+        result.data?.message ||
+        `Không thể cập nhật đơn hàng (HTTP ${result.response.status}).`
+      );
+    }
+
+    // Controller hiện trả trực tiếp document đơn hàng.
+    const updatedOrder = result.data;
+
+    if (
+      !updatedOrder ||
+      String(updatedOrder._id) !== key ||
+      updatedOrder.status !== status
+    ) {
+      throw new Error(
+        'Phản hồi không khớp đơn hàng hoặc trạng thái. ' +
+        'Hãy làm mới danh sách để kiểm tra.'
+      );
+    }
+
+    // Cập nhật bằng dữ liệu thật từ server, gồm cả amountPaid.
+    setOrders(previous =>
+      previous.map(order =>
+        String(order._id) === key
+          ? updatedOrder
+          : order
+      )
+    );
+
+    window.alert(
+      'Đã cập nhật trạng thái và dữ liệu thanh toán của đơn hàng.'
+    );
+  } catch (error) {
+    window.alert(
+      `${error.message || 'Không thể xác định kết quả cập nhật.'}\n` +
+      'Nếu mất kết nối sau khi gửi, hãy làm mới danh sách trước khi thao tác lại.'
+    );
+  } finally {
+    orderUpdatesInFlight.current.delete(key);
+  }
+};
+  // CẬP NHẬT: Xử lý đẩy dữ liệu hệ USD cơ sở xuống DB
+  const handleCheckout = (paymentMethod, bankName, idempotencyKey) => {
     const { name, phone, address, email } = customerInfo;
     
     if (!name || !phone || !address || !bankName) return alert("⚠️ Vui lòng điền đủ thông tin giao hàng!");
     const emailToCheck = email || (currentUser ? currentUser.email : "");
     if (!validatePhoneAndEmail(phone, emailToCheck)) return; 
 
-    const orderData = { customer: customerInfo, items: cart, total: currentTotal, username: currentUser ? currentUser.username : null, paymentInfo: { method: paymentMethod, bank: bankName, amountPaid: amountToPay } };
+    if (checkoutInFlight.current) return;
+    checkoutInFlight.current = true;
+    const orderData = { 
+      customer: { ...customerInfo, email: emailToCheck }, 
+        items: cart, 
+        username: currentUser ? currentUser.username : null, 
+      displayCurrency: storeCurrency,
+      idempotencyKey,
+      paymentInfo: { method: paymentMethod, bank: bankName }
+    };
     
     fetch('http://127.0.0.1:5000/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(orderData) })
-    .then(res => res.json())
-    .then(() => { 
+    .then(async res => {
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Không thể tạo đơn hàng');
+      return data;
+    })
+    .then(() => {
         setCart([]); 
         setShowCartModal(false); 
         setCustomerInfo({ name: "", phone: "", address: "", email: "" }); 
         navigate('/checkout/success'); 
     })
-    .catch(() => alert("⚠️ Lỗi hệ thống đặt hàng!"));
+    .catch(err => alert(`⚠️ ${err.message || 'Lỗi hệ thống đặt hàng!'}`))
+    .finally(() => { checkoutInFlight.current = false; });
   };
 
   return (
@@ -389,13 +557,18 @@ function AppContent() {
           <Route path="/admin" element={
              isAdminMode ? (
                 <AdminPanel 
-                  setIsAdminMode={setIsAdminMode} activeTab={activeTab} setActiveTab={setActiveTab} products={products} 
-                  handleEditClick={(p) => { setNewProduct({ ...p, price: Math.round(p.price * 25400), inputCurrency: 'VND', defaultColorName: p.defaultColorName || "", defaultColorCode: p.defaultColorCode || "#ffffff", colors: p.colors || [] }); setEditingId(p._id); setActiveTab('add'); }} 
+                  setIsAdminMode={setIsAdminMode} 
+                  activeTab={activeTab} 
+                  setActiveTab={setActiveTab} 
+                  products={products} 
+                  handleEditClick={(p) => { setNewProduct({ ...p, price: exchangeRates?.VND ? p.price * exchangeRates.VND : p.price, inputCurrency: 'VND', defaultColorName: p.defaultColorName || "", defaultColorCode: p.defaultColorCode || "#ffffff", colors: p.colors || [] }); setEditingId(p._id); setActiveTab('add'); }} 
                   handleDeleteProduct={(id) => fetch(`http://127.0.0.1:5000/api/products/${id}`, {method:'DELETE'}).then(() => fetchProducts())} 
-                  newProduct={newProduct} setNewProduct={setNewProduct} 
+                  newProduct={newProduct} 
+                  setNewProduct={setNewProduct} 
                   resetForm={() => setNewProduct({ name: "", price: "", inputCurrency: "VND", image: "", defaultColorName: "", defaultColorCode: "#ffffff", gender: "women", category: "bags", isNewProduct: false, isSale: false, description: "", colors: [] })} 
-                  handleSaveProduct={handleSaveProduct} editingId={editingId} orders={orders} 
-                  updateOrderStatus={(id, status) => fetch(`http://127.0.0.1:5000/api/orders/${id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({status})}).then(() => fetchOrders())} 
+                  handleSaveProduct={handleSaveProduct} 
+                  editingId={editingId} 
+                  orders={orders} 
                   users={users} 
                   handleDeleteUser={(userOrId) => {
                     const id = typeof userOrId === 'object' ? userOrId?._id : userOrId;
@@ -417,9 +590,13 @@ function AppContent() {
                     }
                   }} 
                   formatPrice={formatPrice} 
-                  homepageConfig={homepageConfig} setHomepageConfig={setHomepageConfig}
+                  homepageConfig={homepageConfig} 
+                  setHomepageConfig={setHomepageConfig}
                   fetchProducts={fetchProducts} 
+                  exchangeRates={exchangeRates}
                   setOrders={setOrders}
+                  fetchOrders={fetchOrders}
+                  updateOrderStatus={handleUpdateOrderStatus}
                 />
              ) : (
                 <div style={{ padding: "150px 40px", textAlign: "center", minHeight: "60vh" }}>
@@ -452,7 +629,7 @@ function AppContent() {
       <SearchModal showSearchModal={showSearchModal} setShowSearchModal={setShowSearchModal} products={products} setSelectedProduct={setSelectedProduct} formatPrice={formatPrice} />
       <AuthModal showLoginModal={showLoginModal} setShowLoginModal={setShowLoginModal} setCurrentUser={setCurrentUser} validatePhoneAndEmail={validatePhoneAndEmail} />
       
-      {/* TRUYỀN CÁC HÀM MỚI XUỐNG CART MODAL */}
+      {/* CẬP NHẬT: Truyền currentCurrency để CartModal biết người dùng đang chọn hệ tiền tệ nào để quy đổi giá */}
       <CartModal 
           showCartModal={showCartModal} 
           setShowCartModal={setShowCartModal} 
@@ -464,7 +641,8 @@ function AppContent() {
           customerInfo={customerInfo} 
           setCustomerInfo={setCustomerInfo} 
           formatPrice={formatPrice} 
-          handleCheckout={handleCheckout} 
+          handleCheckout={handleCheckout}
+          storeCurrency={storeCurrency}
       />
       
       <ProductModal selectedProduct={selectedProduct} setSelectedProduct={setSelectedProduct} handleBuyNow={(p) => {addToCart(p); setSelectedProduct(null); setShowCartModal(true);}} addToCart={addToCart} formatPrice={formatPrice} />

@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
-const HomepageConfigTab = ({ homepageConfig, setHomepageConfig, products = [] }) => {
-  // Cấu hình mặc định
+// Cấu hình tĩnh: không tạo lại sau mỗi lần render.
   const defaultHomepageConfig = {
     hero: { mediaUrl: "/images/hero-video.mp4", subtitle: "DÀNH CHO NỮ", title: "Thiết Kế Biểu Tượng", btnText: "Khám phá", link: "/women/bags" },
     categoryGrid: {
@@ -27,28 +26,55 @@ const HomepageConfigTab = ({ homepageConfig, setHomepageConfig, products = [] })
     productShowcase3: { title: "Trang Sức Nổi Bật", categoryFilter: "jewelry", selectedProducts: ["", "", "", ""] }
   };
 
-  // State lưu trữ cấu hình cục bộ
-  const [localConfig, setLocalConfig] = useState(() => {
-    const saved = (homepageConfig && homepageConfig.categoryGrid) ? homepageConfig : defaultHomepageConfig;
-    return {
-      ...saved,
-      banner2: saved.banner2 || defaultHomepageConfig.banner2,
-      productShowcase2: saved.productShowcase2 || defaultHomepageConfig.productShowcase2,
-      banner3: saved.banner3 || defaultHomepageConfig.banner3,
-      productShowcase3: saved.productShowcase3 || defaultHomepageConfig.productShowcase3,
-    };
-  });
+// Tạo bản sao độc lập và bổ sung các phần còn thiếu trong cấu hình cũ.
+function normalizeHomepageConfig(config) {
+  const saved = config && typeof config === 'object' && !Array.isArray(config)
+    ? config : {};
+  const merged = { ...defaultHomepageConfig, ...saved };
 
-  // Đồng bộ lại state local khi homepageConfig từ cha thay đổi
+  for (const key of Object.keys(defaultHomepageConfig)) {
+    merged[key] = {
+      ...defaultHomepageConfig[key],
+      ...(saved[key] || {})
+    };
+  }
+
+  for (const gender of ['women', 'men']) {
+    merged.categoryGrid[gender] = Array.from({ length: 4 }, (_, index) => ({
+      ...defaultHomepageConfig.categoryGrid[gender][index],
+      ...(saved.categoryGrid?.[gender]?.[index] || {})
+    }));
+  }
+
+  for (const key of ['productShowcase', 'productShowcase2', 'productShowcase3']) {
+    merged[key].selectedProducts = Array.from({ length: 4 }, (_, index) =>
+      typeof saved[key]?.selectedProducts?.[index] === 'string'
+        ? saved[key].selectedProducts[index] : ''
+    );
+  }
+
+  return JSON.parse(JSON.stringify(merged));
+}
+
+const HomepageConfigTab = ({ homepageConfig, setHomepageConfig, products = [] }) => {
+  const [localConfig, setLocalConfigState] = useState(() =>
+    normalizeHomepageConfig(homepageConfig)
+  );
+  const [isSaving, setIsSaving] = useState(false);
+  const dirtyRef = useRef(false);
+  const savingRef = useRef(false);
+
+  // Các ô nhập hiện có gọi hàm này để đánh dấu bản nháp đã chỉnh sửa.
+  const setLocalConfig = nextConfig => {
+    if (savingRef.current) return;
+    dirtyRef.current = true;
+    setLocalConfigState(nextConfig);
+  };
+
+  // Nhận dữ liệu tải bất đồng bộ, nhưng không ghi đè bản nháp đang sửa.
   useEffect(() => {
-    if (homepageConfig && homepageConfig.categoryGrid) {
-      setLocalConfig({
-        ...homepageConfig,
-        banner2: homepageConfig.banner2 || defaultHomepageConfig.banner2,
-        productShowcase2: homepageConfig.productShowcase2 || defaultHomepageConfig.productShowcase2,
-        banner3: homepageConfig.banner3 || defaultHomepageConfig.banner3,
-        productShowcase3: homepageConfig.productShowcase3 || defaultHomepageConfig.productShowcase3,
-      });
+    if (!dirtyRef.current && !savingRef.current) {
+      setLocalConfigState(normalizeHomepageConfig(homepageConfig));
     }
   }, [homepageConfig]);
 
@@ -72,26 +98,51 @@ const HomepageConfigTab = ({ homepageConfig, setHomepageConfig, products = [] })
     { label: "Du lịch", value: "/travel" }
   ];
 
-  // Hàm xử lý lưu cấu hình về Server
-  const handleSaveHomepageConfig = () => {
-    if (setHomepageConfig) {
-      setHomepageConfig(localConfig);
+  // Chỉ cập nhật cấu hình ở component cha sau khi server xác nhận lưu.
+  const handleSaveHomepageConfig = async () => {
+    if (savingRef.current) return;
+    savingRef.current = true;
+    setIsSaving(true);
+    const snapshot = normalizeHomepageConfig(localConfig);
+
+    try {
+      const response = await fetch('http://127.0.0.1:5000/api/settings/homepage', {
+        method: 'POST',
+        // Giữ hợp đồng API settings hiện tại; cần chuyển sang Bearer token
+        // đồng bộ với server khi hoàn tất bước tích hợp xác thực.
+        headers: { 'Content-Type': 'application/json', 'x-user-role': 'admin' },
+        body: JSON.stringify({ config: snapshot })
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok || data?.success !== true) {
+        throw new Error(data?.message || 'Máy chủ chưa xác nhận lưu cấu hình.');
+      }
+
+      dirtyRef.current = false;
+      setLocalConfigState(snapshot);
+      if (typeof setHomepageConfig === 'function') {
+        setHomepageConfig(snapshot);
+      }
+      alert('Đã lưu giao diện trang chủ thành công!');
+    } catch (error) {
+      alert(`Không lưu được cấu hình: ${error.message}`);
+    } finally {
+      savingRef.current = false;
+      setIsSaving(false);
     }
-    fetch('http://127.0.0.1:5000/api/settings/homepage', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-user-role': 'admin' },
-      body: JSON.stringify({ config: localConfig })
-    })
-      .then(res => res.json())
-      .then(() => alert('✨ Đã cập nhật và lưu vĩnh viễn giao diện Trang chủ vào hệ thống!'))
-      .catch(() => alert('⚠️ Có lỗi xảy ra khi lưu vào Database!'));
   };
 
-  // Cập nhật từng ô trong danh mục động
+  // Sao chép cả mảng và đối tượng ô; không sửa trực tiếp props/state cũ.
   const updateCategoryGrid = (gender, index, field, value) => {
-    const newGrid = { ...localConfig.categoryGrid };
-    newGrid[gender][index][field] = value;
-    setLocalConfig({ ...localConfig, categoryGrid: newGrid });
+    setLocalConfig(previous => ({
+      ...previous,
+      categoryGrid: {
+        ...previous.categoryGrid,
+        [gender]: previous.categoryGrid[gender].map((item, itemIndex) =>
+          itemIndex === index ? { ...item, [field]: value } : item
+        )
+      }
+    }));
   };
 
   // Chọn sản phẩm hiển thị trong Showcase
@@ -177,6 +228,7 @@ const HomepageConfigTab = ({ homepageConfig, setHomepageConfig, products = [] })
     <div style={{ ...cardStyle, maxWidth: '1000px', margin: '0 auto' }}>
       <h3 style={{ marginBottom: '10px', fontSize: '22px' }}>Tùy Chỉnh Giao Diện Trang Chủ (CMS)</h3>
 
+      <fieldset disabled={isSaving} style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}>
       {/* 1. Hero Banner */}
       <div style={{ padding: '25px', backgroundColor: '#fff', borderRadius: '8px', marginBottom: '20px', border: '1px solid #e1e1e1' }}>
         <h4 style={{ margin: '0 0 20px 0', fontSize: '16px' }}>1. Banner Chính Khổ Lớn</h4>
@@ -248,9 +300,10 @@ const HomepageConfigTab = ({ homepageConfig, setHomepageConfig, products = [] })
       {renderShowcaseCMS("8. Khối Trưng Bày Động (Số 4)", "productShowcase3")}
 
       {/* Nút lưu toàn bộ */}
-      <button onClick={handleSaveHomepageConfig} style={{ width: '100%', padding: '16px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', marginTop: '20px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
-        💾 Lưu Toàn Bộ Giao Diện
+      <button type="button" disabled={isSaving} onClick={handleSaveHomepageConfig} style={{ width: '100%', padding: '16px', backgroundColor: '#1a1a1a', color: '#fff', border: 'none', borderRadius: '6px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', marginTop: '20px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+        {isSaving ? 'Đang lưu...' : '💾 Lưu Toàn Bộ Giao Diện'}
       </button>
+      </fieldset>
     </div>
   );
 };

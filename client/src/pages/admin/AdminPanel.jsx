@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { 
   LayoutDashboard, Package, ShoppingCart, MessageSquare, 
   Users, Heart, LogOut, Menu, Palette, Plus, Search, Trash2, X
@@ -21,11 +21,7 @@ function AdminPanel({
 }) {
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
   const [historyModal, setHistoryModal] = useState({ open: false, user: null, orders: [] });
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(8); 
   const [topLikedProducts, setTopLikedProducts] = useState([]);
   
   // Đã xóa dòng const [orders, setOrders] = useState([]) bị trùng lặp ở đây
@@ -39,44 +35,13 @@ function AdminPanel({
     }
   }, [activeTab]);
 
-  const defaultHomepageConfig = {
-    hero: { mediaUrl: "", subtitle: "", title: "", btnText: "", link: "" },
-    categoryGrid: { title: "", women: [{},{},{},{}], men: [{},{},{},{}] },
-    banner1: { mediaUrl: "", subtitle: "", title: "", btnText: "", link: "" },
-    productShowcase: { title: "", categoryFilter: "bags", selectedProducts: ["", "", "", ""] },
-    banner2: { mediaUrl: "", subtitle: "", title: "", link: "", btnText: "" },
-    productShowcase2: { title: "", categoryFilter: "bags", selectedProducts: ["", "", "", ""] },
-    banner3: { mediaUrl: "", subtitle: "", title: "", link: "", btnText: "" },
-    productShowcase3: { title: "", categoryFilter: "jewelry", selectedProducts: ["", "", "", ""] }
-  };
-  
-  const [localConfig, setLocalConfig] = useState(() => {
-    const saved = (homepageConfig && homepageConfig.categoryGrid) ? homepageConfig : defaultHomepageConfig;
-    return { ...saved };
-  });
-
-  const handleSaveHomepageConfig = () => {
-    if(setHomepageConfig) {
-        setHomepageConfig(localConfig);
-        fetch('http://127.0.0.1:5000/api/settings/homepage', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-user-role': 'admin' },
-            body: JSON.stringify({ config: localConfig })
-        })
-        .then(res => res.json())
-        .then(() => alert('✨ Đã cập nhật và lưu vĩnh viễn giao diện Trang chủ!'))
-        .catch(() => alert('⚠️ Có lỗi xảy ra khi lưu vào Database!'));
-    }
-  };
-
   const totalRevenue = orders?.filter(o => o.status === 'completed').reduce((sum, o) => sum + o.total, 0) || 0;
   const pendingOrdersCount = orders?.filter(o => o.status === 'pending' || o.status === 'processing').length || 0;
   const totalCustomers = users?.filter(u => u.username !== 'admin').length || 0;
 
-  const { chartDataMonthly, chartDataYearly } = useMemo(() => {
+  const chartDataMonthly = useMemo(() => {
     const currentYear = new Date().getFullYear();
     const monthly = Array.from({ length: 12 }, (_, i) => ({ month: `T${i + 1}`, revenue: 0, productsSold: 0 }));
-    const yearlyMap = {};
     if (orders) {
       orders.forEach(o => {
         if (o.status === 'completed') {
@@ -85,31 +50,11 @@ function AdminPanel({
           const y = orderDate.getFullYear();
           const itemsCount = o.items ? o.items.reduce((sum, item) => sum + (item.quantity || 1), 0) : 1;
           if (y === currentYear) { monthly[m].revenue += (o.total || 0); monthly[m].productsSold += itemsCount; }
-          if (!yearlyMap[y]) yearlyMap[y] = { year: y.toString(), revenue: 0 };
-          yearlyMap[y].revenue += (o.total || 0);
         }
       });
     }
-    const yearly = Object.values(yearlyMap).sort((a, b) => a.year.localeCompare(b.year));
-    if (yearly.length === 0) yearly.push({ year: currentYear.toString(), revenue: totalRevenue });
-    return { chartDataMonthly: monthly, chartDataYearly: yearly };
-  }, [orders, totalRevenue]);
-
-  const processedProducts = useMemo(() => {
-    let items = [...(products || [])];
-    if (searchTerm) items = items.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
-    if (sortConfig.key) {
-      items.sort((a, b) => {
-        if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === 'ascending' ? -1 : 1;
-        if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === 'ascending' ? 1 : -1;
-        return 0;
-      });
-    }
-    return items;
-  }, [products, searchTerm, sortConfig]);
-
-  const totalPages = Math.ceil(processedProducts.length / itemsPerPage);
-  const currentProducts = processedProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    return monthly;
+  }, [orders]);
 
   const menuItems = [
     { id: 'overview', label: 'Tổng Quan', icon: LayoutDashboard },
