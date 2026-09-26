@@ -72,6 +72,9 @@ import WishlistPage from './pages/WishlistPage';
 import ContactPage from './pages/contact/ContactPage';
 import ContactMail from './pages/contact/ContactMail';
 import ServicesPage from './pages/ServicesPage';
+import AccountPage from './pages/AccountPage';
+import MyOrdersPage from './pages/MyOrdersPage';
+import ProfilePage from './pages/ProfilePage';
 
 // ==========================================
 // TRANG FOOTER
@@ -1018,6 +1021,72 @@ function AppContent() {
           />
 
           <Route
+            path="/account"
+            element={
+              <AccountPage
+                currentUser={currentUser}
+                setCurrentUser={setCurrentUser}
+                handleLogout={handleLogout}
+                setShowProfileModal={setShowProfileModal}
+                setShowOrdersModal={setShowOrdersModal}
+                setShowLoginModal={setShowLoginModal}
+                orders={orders}
+                formatPrice={formatPrice}
+              />
+            }
+          />
+
+          <Route
+            path="/my-orders"
+            element={
+              <MyOrdersPage
+                currentUser={currentUser}
+                formatPrice={formatPrice}
+                handleLogout={handleLogout}
+                setShowProfileModal={setShowProfileModal}
+                setShowLoginModal={setShowLoginModal}
+              />
+            }
+          />
+
+          <Route
+            path="/orders"
+            element={
+              <MyOrdersPage
+                currentUser={currentUser}
+                formatPrice={formatPrice}
+                handleLogout={handleLogout}
+                setShowProfileModal={setShowProfileModal}
+                setShowLoginModal={setShowLoginModal}
+              />
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProfilePage
+                currentUser={currentUser}
+                setCurrentUser={setCurrentUser}
+                handleLogout={handleLogout}
+                setShowLoginModal={setShowLoginModal}
+              />
+            }
+          />
+
+          <Route
+            path="/my-account"
+            element={
+              <ProfilePage
+                currentUser={currentUser}
+                setCurrentUser={setCurrentUser}
+                handleLogout={handleLogout}
+                setShowLoginModal={setShowLoginModal}
+              />
+            }
+          />
+
+          <Route
             path="/homepage"
             element={
               <Home
@@ -1069,6 +1138,9 @@ function AppContent() {
               <StoreAppointment
                 currentUser={currentUser}
                 setCurrentUser={setCurrentUser}
+                handleLogout={handleLogout}
+                setShowProfileModal={setShowProfileModal}
+                setShowLoginModal={setShowLoginModal}
               />
             }
           />
@@ -1421,6 +1493,9 @@ function AppContent() {
                 setSelectedProduct={setSelectedProduct}
                 addToCart={addToCart}
                 formatPrice={formatPrice}
+                handleLogout={handleLogout}
+                setShowProfileModal={setShowProfileModal}
+                setShowLoginModal={setShowLoginModal}
               />
             }
           />

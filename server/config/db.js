@@ -68,7 +68,8 @@ const seedData = async () => {
 
 const connectDB = async () => {
     try {
-        await mongoose.connect('mongodb://127.0.0.1:27017/shop_quanao');
+        const uri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/shop_quanao';
+        await mongoose.connect(uri);
         console.log("MongoDB Connected Chuẩn MVC!");
         await seedData();
     } catch (err) {

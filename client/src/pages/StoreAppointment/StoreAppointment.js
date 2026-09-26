@@ -1,7 +1,15 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import './StoreAppointment.css';
 
-export default function StoreAppointment() {
+export default function StoreAppointment({
+  currentUser,
+  setCurrentUser,
+  handleLogout,
+  setShowProfileModal,
+  setShowLoginModal
+}) {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [location, setLocation] = useState('');
   
@@ -20,6 +28,44 @@ export default function StoreAppointment() {
     phoneCode: '+84',
     phoneNumber: ''
   });
+
+  // Tự động điền thông tin nếu đã đăng nhập
+  useEffect(() => {
+    if (currentUser) {
+      const nameParts = currentUser.name ? currentUser.name.trim().split(' ') : [];
+      const fName = nameParts.length > 0 ? nameParts[nameParts.length - 1] : '';
+      const lName = nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : '';
+
+      setContactInfo(prev => ({
+        ...prev,
+        firstName: prev.firstName || fName || currentUser.username || '',
+        lastName: prev.lastName || lName || '',
+        email: prev.email || currentUser.email || '',
+        phoneNumber: prev.phoneNumber || currentUser.phone || ''
+      }));
+    }
+  }, [currentUser]);
+
+  const tabs = [
+    { id: 'overview', label: 'Tổng quan' },
+    { id: 'profile', label: 'Tài khoản của tôi' },
+    { id: 'orders', label: 'Đơn hàng của tôi' },
+    { id: 'wishlist', label: 'Danh sách yêu thích của tôi' },
+    { id: 'appointments', label: 'Cuộc hẹn của tôi' }
+  ];
+
+  const handleTabClick = (tabId) => {
+    if (tabId === 'overview') navigate('/account');
+    else if (tabId === 'profile') navigate('/profile');
+    else if (tabId === 'orders') navigate('/my-orders');
+    else if (tabId === 'wishlist') navigate('/wishlist');
+  };
+
+  const displayName = currentUser?.name || currentUser?.username || currentUser?.email?.split('@')[0] || 'Tài khoản';
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // State xử lý gửi dữ liệu lên Backend
   const [loading, setLoading] = useState(false);
@@ -231,13 +277,83 @@ export default function StoreAppointment() {
   };
 
   return (
-    <div className="appointment-page">
-      <h1 className="appointment-title">Đặt lịch hẹn ở cửa hàng</h1>
+    <div style={{ backgroundColor: '#ffffff', minHeight: '90vh', color: '#111111', fontFamily: "'Jost', sans-serif" }}>
+      {/* 1. TOP TABS MENU */}
+      <div style={{
+        borderBottom: '1px solid #e5e5e5',
+        borderTop: '1px solid #e5e5e5',
+        backgroundColor: '#ffffff',
+        overflowX: 'auto',
+        whiteSpace: 'nowrap'
+      }}>
+        <div style={{
+          display: 'flex',
+          maxWidth: '1240px',
+          margin: '0 auto',
+          minWidth: '720px'
+        }}>
+          {tabs.map((tab) => {
+            const isActive = tab.id === 'appointments';
+            return (
+              <button
+                key={tab.id}
+                onClick={() => handleTabClick(tab.id)}
+                style={{
+                  flex: 1,
+                  padding: '16px 14px',
+                  background: 'none',
+                  border: 'none',
+                  borderRight: '1px solid #e5e5e5',
+                  borderBottom: isActive ? '3px solid #000000' : '3px solid transparent',
+                  color: isActive ? '#000000' : '#444444',
+                  fontSize: '13px',
+                  fontWeight: isActive ? '600' : '400',
+                  letterSpacing: '0.3px',
+                  cursor: 'pointer',
+                  textAlign: 'center',
+                  transition: 'all 0.2s ease',
+                  outline: 'none',
+                  backgroundColor: isActive ? '#fafafa' : 'transparent'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) e.currentTarget.style.backgroundColor = '#f7f7f7';
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-      {/* Hiển thị thông báo trạng thái */}
-      {statusMessage.text && (
-        <div 
-          style={{
+      {/* 2. USER NAME HEADING */}
+      {currentUser && (
+        <div style={{ textAlign: 'center', padding: '42px 20px 16px' }}>
+          <h1 style={{
+            fontSize: '26px',
+            fontWeight: '500',
+            letterSpacing: '0.8px',
+            color: '#111111',
+            margin: 0
+          }}>
+            {displayName}
+          </h1>
+          <p style={{ margin: '8px 0 0', fontSize: '14px', color: '#666' }}>
+            Cuộc hẹn của tôi
+          </p>
+        </div>
+      )}
+
+      <div className="appointment-page" style={{ paddingTop: currentUser ? '20px' : '40px' }}>
+        <h1 className="appointment-title">Đặt lịch hẹn ở cửa hàng</h1>
+
+        {/* Hiển thị thông báo trạng thái */}
+        {statusMessage.text && (
+          <div 
+            style={{
             maxWidth: '800px',
             margin: '0 auto 20px auto',
             padding: '15px 20px',
@@ -437,6 +553,94 @@ export default function StoreAppointment() {
             disabled={!selectedDateObj}
           >
             Chọn
+          </button>
+        </div>
+        </div>
+      </div>
+
+      {/* 4. BOTTOM BAR */}
+      <div style={{
+        marginTop: '60px',
+        paddingTop: '24px',
+        borderTop: '1px solid #eeeeee',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '20px',
+        maxWidth: '1240px',
+        margin: '60px auto 0',
+        padding: '24px 30px 40px',
+        boxSizing: 'border-box'
+      }}>
+        <div>
+          <Link
+            to="/legal/privacy"
+            style={{
+              color: '#111111',
+              fontSize: '13px',
+              textDecoration: 'underline',
+              letterSpacing: '0.4px'
+            }}
+          >
+            Điều khoản và Điều kiện
+          </Link>
+        </div>
+
+        <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+          {currentUser && (
+            <button
+              onClick={handleLogout}
+              style={{
+                height: '42px',
+                padding: '0 28px',
+                backgroundColor: '#dcdcdc',
+                color: '#111111',
+                border: '1px solid #999999',
+                borderRadius: '9999px',
+                fontSize: '13px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#cecece';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#dcdcdc';
+              }}
+            >
+              Đăng xuất
+            </button>
+          )}
+
+          <button
+            onClick={scrollToTop}
+            style={{
+              height: '42px',
+              padding: '0 20px',
+              backgroundColor: 'transparent',
+              color: '#333333',
+              border: '1px solid #999999',
+              borderRadius: '9999px',
+              fontSize: '12px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = '#f5f5f5';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+          >
+            <span>Quay lại đầu trang</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="18 15 12 9 6 15" />
+            </svg>
           </button>
         </div>
       </div>

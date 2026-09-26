@@ -1,19 +1,16 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import ProductCard from '../components/ProductCard';
 
-function WishlistPage({
-  products = [],
+function MyOrdersPage({
   currentUser,
-  setCurrentUser,
-  setSelectedProduct,
-  addToCart,
   formatPrice,
   handleLogout,
   setShowProfileModal,
   setShowLoginModal
 }) {
   const navigate = useNavigate();
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const tabs = [
     { id: 'overview', label: 'Tổng quan' },
@@ -23,25 +20,54 @@ function WishlistPage({
     { id: 'appointments', label: 'Cuộc hẹn của tôi' }
   ];
 
+  useEffect(() => {
+    if (currentUser) {
+      setLoading(true);
+      const userIdentifier = currentUser.username || currentUser.email || '';
+      fetch(`http://127.0.0.1:5000/api/orders/my-orders?username=${encodeURIComponent(userIdentifier)}`)
+        .then(res => res.json())
+        .then(data => {
+          setOrders(Array.isArray(data) ? data : []);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error("Lỗi khi tải đơn hàng:", err);
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
+    }
+  }, [currentUser]);
+
   const handleTabClick = (tabId) => {
     if (tabId === 'overview') {
       navigate('/account');
     } else if (tabId === 'profile') {
       navigate('/profile');
-    } else if (tabId === 'orders') {
-      navigate('/my-orders');
+    } else if (tabId === 'wishlist') {
+      navigate('/wishlist');
     } else if (tabId === 'appointments') {
       navigate('/book-appointment');
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'completed':
+        return { label: 'Đã hoàn thành', bg: '#e6f7ed', color: '#12b76a' };
+      case 'shipping':
+        return { label: 'Đang giao hàng', bg: '#e0f2fe', color: '#0284c7' };
+      case 'cancelled':
+        return { label: 'Đã hủy', bg: '#fee2e2', color: '#ef4444' };
+      case 'processing':
+      default:
+        return { label: 'Đang xử lý', bg: '#fef3c7', color: '#d97706' };
     }
   };
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
-  const wishlistedProducts = (products || []).filter(product =>
-    currentUser?.wishlist?.some(id => String(id) === String(product._id || product.id))
-  );
 
   if (!currentUser) {
     return (
@@ -64,10 +90,10 @@ function WishlistPage({
           marginBottom: '16px',
           fontFamily: "'Playfair Display', serif"
         }}>
-          Danh sách yêu thích của tôi
+          Đơn hàng của tôi
         </h2>
         <p style={{ color: '#666', fontSize: '15px', marginBottom: '32px' }}>
-          Vui lòng đăng nhập để xem danh sách sản phẩm yêu thích của bạn.
+          Vui lòng đăng nhập để xem lịch sử và quản lý đơn đặt hàng của bạn.
         </p>
         <button
           onClick={() => setShowLoginModal && setShowLoginModal(true)}
@@ -108,7 +134,7 @@ function WishlistPage({
           minWidth: '720px'
         }}>
           {tabs.map((tab) => {
-            const isActive = tab.id === 'wishlist';
+            const isActive = tab.id === 'orders';
             return (
               <button
                 key={tab.id}
@@ -156,21 +182,28 @@ function WishlistPage({
           {displayName}
         </h1>
         <p style={{ margin: '8px 0 0', fontSize: '14px', color: '#666' }}>
-          Danh sách yêu thích của tôi ({wishlistedProducts.length})
+          Đơn hàng của tôi
         </p>
       </div>
 
-      {/* 3. MAIN WISHLIST CONTAINER */}
+      {/* 3. MAIN ORDERS CONTAINER */}
       <div style={{
-        maxWidth: '1240px',
+        maxWidth: '1000px',
         margin: '0 auto',
         padding: '0 30px 60px',
         boxSizing: 'border-box'
       }}>
-        {wishlistedProducts.length === 0 ? (
+        {loading ? (
           <div style={{
-            maxWidth: '1000px',
-            margin: '0 auto',
+            textAlign: 'center',
+            padding: '80px 20px',
+            border: '1px solid #e5e5e5',
+            backgroundColor: '#ffffff'
+          }}>
+            <div style={{ fontSize: '14px', color: '#666' }}>Đang tải danh sách đơn hàng...</div>
+          </div>
+        ) : orders.length === 0 ? (
+          <div style={{
             border: '1px solid #e5e5e5',
             backgroundColor: '#ffffff',
             padding: '60px 30px',
@@ -184,10 +217,10 @@ function WishlistPage({
               color: '#111111',
               marginBottom: '12px'
             }}>
-              DANH SÁCH YÊU THÍCH CỦA BẠN ĐANG TRỐNG
+              HIỆN KHÔNG CÓ ĐƠN ĐẶT HÀNG NÀO
             </div>
             <p style={{ color: '#777', fontSize: '14px', marginBottom: '32px' }}>
-              Hãy thả tim những món đồ thời trang bạn ưng ý để dễ dàng xem lại bất cứ lúc nào.
+              Khám phá các bộ sưu tập thời trang mới nhất và đặt hàng ngay hôm nay.
             </p>
             <button
               onClick={() => navigate('/homepage')}
@@ -211,18 +244,116 @@ function WishlistPage({
             </button>
           </div>
         ) : (
-          <div className="w3-row-padding" style={{ margin: '0 -10px' }}>
-            {wishlistedProducts.map(product => (
-              <ProductCard
-                key={product._id}
-                product={product}
-                currentUser={currentUser}
-                setCurrentUser={setCurrentUser}
-                setSelectedProduct={setSelectedProduct}
-                addToCart={addToCart}
-                formatPrice={formatPrice}
-              />
-            ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {orders.map((order, idx) => {
+              const badge = getStatusBadge(order.status);
+              const orderDate = order.createdAt ? new Date(order.createdAt).toLocaleDateString('vi-VN', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+              }) : 'N/A';
+
+              return (
+                <div
+                  key={order._id || idx}
+                  style={{
+                    border: '1px solid #e5e5e5',
+                    backgroundColor: '#ffffff',
+                    padding: '24px 28px',
+                    transition: 'border-color 0.2s ease'
+                  }}
+                >
+                  {/* Order Header */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    paddingBottom: '16px',
+                    borderBottom: '1px solid #f0f0f0'
+                  }}>
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: '600', color: '#111', letterSpacing: '0.5px' }}>
+                        MÃ ĐƠN HÀNG: #{String(order._id).slice(-8).toUpperCase()}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#888', marginTop: '4px' }}>
+                        Ngày đặt: {orderDate}
+                      </div>
+                    </div>
+                    <span style={{
+                      padding: '4px 14px',
+                      borderRadius: '9999px',
+                      fontSize: '12px',
+                      fontWeight: '500',
+                      backgroundColor: badge.bg,
+                      color: badge.color
+                    }}>
+                      {badge.label}
+                    </span>
+                  </div>
+
+                  {/* Order Items */}
+                  <div style={{ padding: '16px 0', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    {order.items && order.items.map((item, itemIdx) => (
+                      <div
+                        key={itemIdx}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '16px'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                          {item.image && (
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              style={{
+                                width: '56px',
+                                height: '56px',
+                                objectFit: 'cover',
+                                border: '1px solid #eee'
+                              }}
+                            />
+                          )}
+                          <div>
+                            <div style={{ fontSize: '14px', fontWeight: '500', color: '#111' }}>
+                              {item.name}
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#777', marginTop: '3px' }}>
+                              {item.selectedColor && `Màu: ${item.selectedColor} • `}Số lượng: x{item.quantity}
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ fontSize: '14px', fontWeight: '600', color: '#111' }}>
+                          {formatPrice ? formatPrice(item.price * item.quantity) : `${item.price * item.quantity}`}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Order Footer */}
+                  <div style={{
+                    paddingTop: '16px',
+                    borderTop: '1px solid #f0f0f0',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '10px'
+                  }}>
+                    <div style={{ fontSize: '13px', color: '#666' }}>
+                      Hình thức: <span style={{ color: '#111', fontWeight: '500' }}>{order.paymentMethod === 'deposit' ? 'Đặt cọc 25%' : 'Thanh toán 100%'}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '13px', color: '#777' }}>Tổng thanh toán:</span>
+                      <span style={{ fontSize: '16px', fontWeight: '700', color: '#111' }}>
+                        {formatPrice ? formatPrice(order.total) : `${order.total}`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -311,4 +442,4 @@ function WishlistPage({
   );
 }
 
-export default WishlistPage;
+export default MyOrdersPage;

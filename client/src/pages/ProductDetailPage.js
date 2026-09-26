@@ -140,8 +140,36 @@ function ProductDetailPage({ products, addToCart, formatPrice, currentUser, fetc
     : 0;
 
   return (
-    <div style={{ backgroundColor: '#f5f5f5', minHeight: '100vh', paddingTop: '110px', paddingBottom: '60px' }}>
+    <div style={{ backgroundColor: '#f5f5f5', minHeight: '100vh', paddingTop: '100px', paddingBottom: '60px' }}>
        
+       {/* Nút quay lại */}
+       <div style={{ maxWidth: '1200px', margin: '0 auto 14px', padding: '0 8px' }}>
+          <button 
+             onClick={() => navigate(-1)} 
+             style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'none',
+                border: 'none',
+                color: '#555555',
+                cursor: 'pointer',
+                fontSize: '13px',
+                fontWeight: '500',
+                letterSpacing: '0.5px',
+                padding: '4px 0',
+                transition: 'color 0.2s ease'
+             }}
+             onMouseEnter={(e) => (e.currentTarget.style.color = '#000000')}
+             onMouseLeave={(e) => (e.currentTarget.style.color = '#555555')}
+          >
+             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+             </svg>
+             Quay lại
+          </button>
+       </div>
+
        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '30px', backgroundColor: '#fff', borderRadius: '4px', display: 'flex', flexWrap: 'wrap', gap: '40px', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
           
           <div style={{ flex: '1 1 450px' }}>
